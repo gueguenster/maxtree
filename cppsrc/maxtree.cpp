@@ -774,21 +774,21 @@ vector < vector < double > > MaxTree<PixelType>::computeShapeAttributes( ){
 	return shp_att;
 }
 
-void layerAddPixel(ui p, vector<double>& att, const vector< float > layer){
+void layerAddPixel(ui p, vector<double>& att, float layerVal){
 	// sum_layer, sum_layer*layer, min_val, max_val
 	if(att.size()==0){
 		att.resize(5);
 		fill_n(begin(att), 5 ,0.0);
-		att[3] = layer[p];
-		att[4] = layer[p];
+		att[3] = layerVal;
+		att[4] = layerVal;
 	}
 	att[0]+=1; // for number in sum
-	att[1]+=layer[p]; // for sum
-	att[2]+=pow(layer[p],2); // for sum of square
-	if(layer[p]<att[3]) // for min
-		att[3]=layer[p];
-	if(layer[p]>att[4]) // for max
-		att[4]=layer[p];
+	att[1]+=layerVal; // for sum
+	att[2]+=pow(layerVal,2); // for sum of square
+	if(layerVal<att[3]) // for min
+		att[3]=layerVal;
+	if(layerVal>att[4]) // for max
+		att[4]=layerVal;
 
 }
 void layerMerge(vector<double>& paratt, vector<double>& att){
@@ -819,9 +819,9 @@ vector < vector < double > > MaxTree<PixelType>::computeLayerAttributes( const v
 	vector < vector < double > > layer_att( getNbCC() );
 	for(ui p=0;p<nbpixels;++p){
 		if(diff[p]){
-			layerAddPixel(p,layer_att[ pixelheader2cc[p] ], layer);
+			layerAddPixel(p,layer_att[ pixelheader2cc[p] ], layer[p]);
 		}else{
-			layerAddPixel(p,layer_att[ pixelheader2cc[ parent[p] ]], layer);
+			layerAddPixel(p,layer_att[ pixelheader2cc[ parent[p] ]], layer[p]);
 		}
 	}
 
