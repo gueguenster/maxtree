@@ -17,17 +17,18 @@ filtered_out = mt.filter(idx_retained) # direct filtering of the cc
 
 plt.figure()
 plt.subplot(1,3,1)
-plt.imshow(img)
+plt.imshow(img, cmap='Greys_r')
 plt.title('first of rgb image')
 
 plt.subplot(1,3,2)
-plt.imshow(filtered_out)
+plt.imshow(filtered_out, cmap='Greys_r')
 plt.title('cc having an area between 800 and 5000')
 
 ax = plt.subplot(1,3,3)
 plt.hist(cc_areas, bins=12)
 plt.xlabel('area in nb of pixels')
 ax.set_yscale("log", nonposy='clip')
+plt.show()
 
 # Example 2
 img_c = img.max() - img
@@ -43,12 +44,13 @@ filtered_out = mt.filter(idx_retained) # direct filtering
 
 plt.figure()
 plt.subplot(1,2,1)
-plt.imshow(img_c)
+plt.imshow(img_c, cmap='Greys_r')
 plt.title('complement of image')
 
 plt.subplot(1,2,2)
-plt.imshow(filtered_out)
+plt.imshow(filtered_out, cmap='Greys_r')
 plt.title('cc having an average layer < 50 and std layer < 10')
+plt.show()
 
 # Example 3
 mt.compute_shape_attributes()
@@ -61,9 +63,10 @@ idx_retained = np.uint32(np.arange(mt.nb_connected_components))
 filtered_out = mt.filter(idx_retained,scores)
 plt.figure()
 plt.subplot(1,2,1)
-plt.imshow(img_c)
+plt.imshow(img_c, cmap = 'Greys_r')
 plt.title('complement of image')
 
 plt.subplot(1,2,2)
-plt.imshow(filtered_out)
+plt.imshow(filtered_out, cmap = 'Greys_r')
 plt.title('cc with scores')
+plt.show()
