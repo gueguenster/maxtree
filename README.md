@@ -11,5 +11,6 @@ implements the maxtree algorithm with python binding
 ```
  git clone https://github.com/gueguenster/maxtree
  cd maxtree/maxtree
- sudo python setup.py install
+ python setup.py build && python setup.py install --force
+ python -m unittest component_tree_test
 ```
