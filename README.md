@@ -5,7 +5,7 @@ implements the maxtree algorithm with python binding
 * install google test: https://github.com/google/googletest
 * install numpy >=1.8
 * install g++ supporting the -std=c++11 option
-* install swig
+* install swig: https://github.com/swig/swig
 
 # building from source
 ```
