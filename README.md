@@ -48,6 +48,7 @@ ax = plt.subplot(1,3,3)
 plt.hist(cc_areas, bins=12)
 plt.xlabel('area in nb of pixels')
 ax.set_yscale("log", nonposy='clip')
+plt.show()
 
 # Example 2
 img_c = img.max() - img
@@ -69,6 +70,7 @@ plt.title('complement of image')
 plt.subplot(1,2,2)
 plt.imshow(filtered_out)
 plt.title('cc having an average layer < 50 and std layer < 10')
+plt.show()
 
 # Example 3
 mt.compute_shape_attributes()
@@ -87,5 +89,5 @@ plt.title('complement of image')
 plt.subplot(1,2,2)
 plt.imshow(filtered_out)
 plt.title('cc with scores')
-
+plt.show()
 ```
