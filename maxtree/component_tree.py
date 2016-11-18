@@ -159,4 +159,19 @@ class MaxTree(object):
             idx_tmp = np.uint32(idx)
             s_tmp = np.float32(scores)
             return self.mt.filter_swig(idx_tmp,s_tmp)
+
+    def filterAttributes(self, idx, scores):
+        '''
+        filter the max tree in direct mode, by stacking the connected components scores passed
+        input idx: np.uint32 array of the indices of connected components which are retained
+        input scores: np.float32 array providing a score the previous indices.
+        return: a 3d array of the attribute images, corresponding to count, avg, std, min, max
+        note: example of indices computation, idx = (self.getAttributes('area')>1000).nonzero()[0]
+                                              scores = self.getAttributes('area')[idx]
+        '''
+        idx_tmp = np.uint32(idx)
+        s_tmp = np.float32(scores)
+        out = self.mt.computePerPixelAttributes_swig(idx_tmp, s_tmp)
+        o = out.reshape((5,out.shape[0]/5,out.shape[1])).transpose((1,2,0))
+        return o
         

@@ -1,5 +1,5 @@
 /*
-COPYRIGHT
+cCOPYRIGHT
 
 All contributions by L. Gueguen:
 Copyright (c) 2016
@@ -891,6 +891,160 @@ void MaxTree<PixelType>::computeLayerAttributes_swig(float * imarray, unsigned i
 			out[0][j*heighth+i] = res[j][i];
 	}
 
+}
+/*****************************************************************************/
+template<typename PixelType>
+inline vector< float > MaxTree<PixelType>::_filter_feature(
+		ui curHeader,
+		map< ui, vector<float> > & pixelheader2value,
+		const map< ui, float> & isretained,
+		const map< ui, vector<float> > & feature_values) {
+
+	ui locparent = parent[curHeader];
+
+	auto f = pixelheader2value.find(curHeader);
+
+	if(f==end(pixelheader2value)){ // if the header is not in the map
+		float dif =  (float) diff[curHeader];
+		float value = isretained.find(curHeader)->second;
+		vector < float > prev_values = feature_values.find(curHeader)->second;
+		float count = prev_values[0] * dif ;
+		float sum = prev_values[1] * dif ;
+		float sumsquare = prev_values[2] * dif ;
+		float minn = prev_values[3];
+		float maxx = prev_values[4];
+
+		vector < float > values(5);
+
+		if(locparent!=curHeader){ //if the header is not the  root
+			float pvalue = isretained.find(locparent)->second;
+			vector < float > tmp_values = _filter_feature(locparent,pixelheader2value, isretained, feature_values);
+			if (value>0.0){
+				if(pvalue>0.0){
+					values[0]=tmp_values[0]+count;
+					values[1]=tmp_values[1]+sum;
+					values[2]=tmp_values[2]+sumsquare;
+					values[3]=min(tmp_values[3],minn);
+					values[4]=max(tmp_values[4],maxx);
+				}else{
+					values[0]=count;
+					values[1]=sum;
+					values[2]=sumsquare;
+					values[3]=minn;
+					values[4]=maxx;
+				}
+			}else{
+				copy(tmp_values.begin(), tmp_values.end(), values.begin());
+			}
+		}else{
+			copy(prev_values.begin(), prev_values.end(), values.begin());
+		}
+		pixelheader2value[curHeader] = values;
+		return values;
+
+	}else{					// if the header is in the map
+		return f->second;
+	}
+}
+
+template<typename PixelType>
+inline map <ui, vector< float > > MaxTree<PixelType>::_filterall_feature(
+		const map< ui, float> & isretained,
+		const map< ui, vector<float> > & feature_values){
+
+	map < ui , vector<float> > pixelheader2value;
+	for (auto pixelheader: pixelheader2cc){
+		_filter_feature(pixelheader.first, pixelheader2value, isretained, feature_values);
+	}
+	return pixelheader2value;
+}
+
+template<typename PixelType>
+inline void MaxTree<PixelType>::_filterallpixels_feature(
+		vector < vector<float> > & res,
+		const map< ui, float> & isretained,
+		const map< ui, vector< float > > & feature_values){
+
+	map < ui , vector< float > > pixelheader2values = _filterall_feature(isretained, feature_values);
+	// map the values to count, avg, std, min ,max
+	//for(auto pich_values : pixelheader2values){
+	//	float avg = pich_values.second[1]/pich_values.second[0];
+	//	float std = pich_values.second[2]/pich_values.second[0] - avg*avg;
+	//	std = sqrt(std);
+	//	pich_values.second[1] = avg;
+	//	pich_values.second[2] = std;
+	//}
+	// copy the values to the multi dimensional image
+	for(ui i=0; i<nbpixels;++i){
+		vector < float > tmp_res;
+		if(diff[i]){ // that a header pixel
+					tmp_res=pixelheader2values[i];
+		}else{
+					tmp_res=pixelheader2values[parent[i]];
+		}
+		res[i].resize(5);
+		copy(tmp_res.begin(),tmp_res.end(),res[i].begin());
+		float avg = tmp_res[1]/(tmp_res[0]+0.0001);
+		float std = tmp_res[2]/(tmp_res[0]+0.0001) - avg*avg;
+		std = sqrt(std);
+		res[i][1] = avg;
+		res[i][2] = std;
+		//cout << tmp_res[1]<< " " ;
+	}
+	return;
+}
+template < typename PixelType >
+vector < vector<float> > MaxTree<PixelType>::computePerPixelAttributes(const vector < ui > & retained, const vector< float > &features){
+	// retained is a vector of length = nb of CC to remap
+	vector < vector<float> > res(nbpixels);
+
+	// populate is retained vector
+	map< ui, float> isretained;
+	map< ui, vector< float > > feature_values;
+	for(auto header : pixelheader2cc){
+		isretained[header.first] = 0.0;
+		feature_values[header.first].resize(5);
+	}
+	for(ui cc=0; cc < retained.size(); ++cc){
+		if ( retained[cc] < cc2pixelheader.size() ){
+			ui ph = cc2pixelheader[ retained[cc] ] ;
+			isretained[ ph ] = 1.0; // indicate if components is kept
+			feature_values[ ph ][0] = 1; //count
+			feature_values[ ph ][1] = features[cc]; //sum
+			feature_values[ ph ][2] = features[cc]*features[cc]; //sum of square
+			feature_values[ ph ][3] = features[cc]; // min
+			feature_values[ ph ][4] = features[cc]; // max
+		}
+	}
+
+	//launch the procedure
+	_filterallpixels_feature(res, isretained, feature_values);
+	return res;
+}
+template < typename PixelType >
+void MaxTree<PixelType>::computePerPixelAttributes_swig(float ** outf, unsigned int *wf, unsigned int *hf,
+		 unsigned int* retained, unsigned int lr, float* score, unsigned int ls){
+	// copy the filtering into the output
+	int n_height = height*5;
+	*wf = n_height;
+	*hf = width;
+	*outf = new float[nbpixels*5];
+
+	//copy retained and score
+	vector < ui > retained_v(lr);
+	vector < float > score_v(ls);
+	copy(retained, retained+lr, retained_v.begin());
+	copy(score, score+ls, score_v.begin());
+
+	// perform computation
+	vector < vector< float > > per_pixel_attributes = computePerPixelAttributes(retained_v, score_v);
+	for(ui j=0;j< width;++j){
+			for(ui i=0; i< height;++i){
+				for(ui u=0; u< 5; ++u){
+				outf[0][(j*height+i)+u*nbpixels] = per_pixel_attributes[j*height+i][u];
+				}
+			}
+	}
 }
 
 /********************** Templates ************************************/

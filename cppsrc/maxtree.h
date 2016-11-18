@@ -81,6 +81,12 @@ private:
 	inline map <ui, float > _filterall(const map< ui, float> & isretained);
 	inline void _filterallpixels(vector < float > & res, const map< ui, float> & isretained);
 
+	inline vector< float > _filter_feature(ui curHeader, map< ui, vector<float> > & pixelheader2value,
+											const map< ui, float> & isretained,	const map< ui, vector<float> > & feature_values);
+	inline map <ui, vector< float > > _filterall_feature(const map< ui, float> & isretained,const map< ui, vector<float> > & feature_values);
+	inline void _filterallpixels_feature(vector < vector<float> > & res,const map< ui, float> & isretained,
+			const map< ui, vector< float > > & feature_values);
+
 	//covering methods
 	void _addcover(ui p, set < ui > & covering);
 
@@ -122,6 +128,9 @@ public:
 	void computeLayerAttributes_swig(float * imarray, unsigned int width, unsigned int height,
 			float ** outf, unsigned int *wf, unsigned int *hf);
 
+	vector < vector<float> > computePerPixelAttributes(const vector < ui > & retained, const vector< float > &features);
+	void computePerPixelAttributes_swig(float ** outf, unsigned int *wf, unsigned int *hf,
+			 unsigned int* retained, unsigned int lr, float* score, unsigned int ls);
 	// print for small trees
 	void _print(); // to b used for small images, use for test and debug
 
