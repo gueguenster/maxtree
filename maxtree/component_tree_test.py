@@ -79,7 +79,7 @@ class Test(unittest.TestCase):
         mt = MaxTree(self.img_us)
         mt.compute_shape_attributes()
         
-        self.assertEqual(mt.feats.shape[1], 15, "layer attributes are not sufficient")
+        self.assertEqual(mt.feats.shape[1], 17, "layer attributes are not sufficient")
     
     def testGetAttributes(self):
         mt = MaxTree(self.img_us)
