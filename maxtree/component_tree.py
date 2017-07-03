@@ -82,17 +82,35 @@ class MaxTree(object):
         return: a float32 representing the contrast with its parent
         '''
         return self.mt.getDiff(cc_idx)
-    
-    def compute_shape_attributes(self):
+
+    def _log_scaling(self, feats, log_scaling):
+        '''
+        feats come as 'xmin', 'ymin', 'xmax', 'ymax', 'area', 'angle', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7'
+        we modify these to 'xmin', 'ymin', 'xmax', 'ymax', 'area', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7', 'lshape', 'cosangle', 'sinangle'
+        '''
+        lshape = np.sqrt(feats[:,7])/ (np.sqrt(feats[:,6])+log_scaling)
+        cosangle = np.cos(feats[:,5])
+        sinangle = np.sin(feats[:,5])
+        feats = np.delete(feats, 5, 1)
+        for j in range(4,feats.shape[1]):
+            feats[:,j] = np.log(np.abs(feats[:,j]) + log_scaling)
+
+        feats = np.concatenate((feats,lshape[:,None],cosangle[:,None],sinangle[:,None]), axis=1)
+        return feats
+
+
+    def compute_shape_attributes(self, log_scaling=1e-10):
         '''
         computes the shape attributes in the maxtree. The class object gets appended the attributes in self.feats
+        input log_scaling: if None, no log scaling, other wise apply log scaling
         return: nothing
-        note: attributes computed are 'xmin', 'ymin', 'xmax', 'ymax', 'area', 'angle', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7'
+        note: attributes computed are 'xmin', 'ymin', 'xmax', 'ymax', 'area', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7', 'lshape', 'cosangle', 'sinangle'
         '''
         start_i = self.feats.shape[1]
         feats = self.mt.computeShapeAttributes_swig()
+        feats = self._log_scaling(feats, log_scaling)
         self.feats = np.concatenate((self.feats,feats), axis=1)
-        featsD=['xmin', 'ymin', 'xmax', 'ymax', 'area', 'angle', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7']
+        featsD=['xmin', 'ymin', 'xmax', 'ymax', 'area', 'pca_big', 'pca_small', 'hu_1', 'hu_2','hu_3','hu_4','hu_5','hu_6', 'hu_7', 'lshape', 'cosangle', 'sinangle']
         featsDescription = {f:i+start_i for i,f in enumerate(featsD)}
         self.featsDescription.update(featsDescription)
     
