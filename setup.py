@@ -2,6 +2,7 @@
 
 from setuptools import setup, Extension
 import numpy
+from maxtree import __version__
 
 maxtree_extension = Extension('_maxtree',
                               sources=['./maxtree/maxtree_wrap.cpp','./cppsrc/maxtree.cpp'],
@@ -11,7 +12,7 @@ maxtree_extension = Extension('_maxtree',
                               )
 
 setup(name='maxtree',
-      version='0.1.3',
+      version=__version__,
       description='Max Tree algorithm',
       author='Lionel Gueguen',
       author_email='gueguenster@gmail.com',
