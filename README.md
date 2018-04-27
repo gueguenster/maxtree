@@ -4,6 +4,8 @@ implements the maxtree algorithm with python binding
 # requirements
 * install numpy >=1.8
 
+# Pip
+pip install MaxTree
 
 # building from source
 * install g++ supporting the -std=c++11 option
