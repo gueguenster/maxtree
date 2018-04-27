@@ -1,4 +1,6 @@
 build/
+dist/
+maxtree.egg-info/
 *pyc
 .cproject
 .project

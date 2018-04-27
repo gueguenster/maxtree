@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import numpy
 
 maxtree_extension = Extension('_maxtree',
@@ -10,12 +10,13 @@ maxtree_extension = Extension('_maxtree',
                               extra_link_args=['-std=c++11'],
                               )
 
-setup(name='MaxTree',
+setup(name='maxtree',
       version='0.1.0',
       description='Max Tree algorithm',
       author='Lionel Gueguen',
       author_email='gueguenster@gmail.com',
       url='https://github.com/gueguenster/maxtree',
       ext_modules = [maxtree_extension],
-      packages =['maxtree']
+      packages =['maxtree'],
+      include_package_data=True,
      )
