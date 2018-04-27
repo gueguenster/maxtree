@@ -3,3 +3,4 @@ maxtree/build/
 .cproject
 .project
 .idea
+.pytest_cache/
