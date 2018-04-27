@@ -12,11 +12,11 @@ maxtree_extension = Extension('_maxtree',
                               )
 
 setup(name='MaxTree',
-      version='1.0',
+      version='0.1.0',
       description='Max Tree algorithm',
       author='Lionel Gueguen',
-      author_email='lgueguen@uber.com',
-      url='NA',
+      author_email='gueguenster@gmail.com',
+      url='https://github.com/gueguenster/maxtree',
       ext_modules = [maxtree_extension],
       py_modules =['maxtree','component_tree','component_tree_test']
      )
