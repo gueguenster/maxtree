@@ -1,4 +1,4 @@
-maxtree/build/
+build/
 *pyc
 .cproject
 .project
