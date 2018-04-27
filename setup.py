@@ -11,7 +11,7 @@ maxtree_extension = Extension('_maxtree',
                               )
 
 setup(name='maxtree',
-      version='0.1.0',
+      version='0.1.3',
       description='Max Tree algorithm',
       author='Lionel Gueguen',
       author_email='gueguenster@gmail.com',
