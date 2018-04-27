@@ -9,10 +9,21 @@ pip install MaxTree
 
 # building from source
 * install g++ supporting the -std=c++11 option
-```
+```commandline
  git clone https://github.com/gueguenster/maxtree
- cd maxtree/maxtree && python setup.py install
- cd .. && pytest
+ cd maxtree 
+ python setup.py install
+```
+
+to test the installation
+```commandline
+python setup.py develop 
+pytest
+```
+
+On MacOS
+```commandline
+conda install --channel https://conda.anaconda.org/anaconda clangxx_osx-64
 ```
 
 # Usage example
@@ -20,7 +31,7 @@ see example/example.py
 ```
 import matplotlib.pyplot as plt
 import numpy as np
-from component_tree import MaxTree
+from maxtree.component_tree import MaxTree
 from scipy import misc
 
 img_rgb = misc.face()

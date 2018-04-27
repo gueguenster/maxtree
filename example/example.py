@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from component_tree import MaxTree
+from maxtree.component_tree import MaxTree
 from scipy import misc
 
 img_rgb = misc.face()
