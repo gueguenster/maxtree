@@ -1,1 +1,2 @@
-recursive-include *.cpp *.h *
+recursive-include * *.h *.cpp *.md
+include LICENSE *.lds
