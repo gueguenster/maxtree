@@ -33,7 +33,7 @@ from __future__ import division
 from __future__ import print_function
 
 import unittest
-from component_tree import MaxTree
+from maxtree.component_tree import MaxTree
 import numpy as np
 import pickle
 

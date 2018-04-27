@@ -17,5 +17,5 @@ setup(name='MaxTree',
       author_email='gueguenster@gmail.com',
       url='https://github.com/gueguenster/maxtree',
       ext_modules = [maxtree_extension],
-      py_modules =['maxtree.maxtree','maxtree.component_tree']
+      packages =['maxtree']
      )
