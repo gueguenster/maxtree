@@ -4,8 +4,7 @@ from distutils.core import setup, Extension
 import numpy
 
 maxtree_extension = Extension('_maxtree',
-                              sources=['maxtree.i','../cppsrc/maxtree.cpp'],
-                              swig_opts=['-c++', '-I../cppsrc'],
+                              sources=['./maxtree_wrap.cpp','../cppsrc/maxtree.cpp'],
                               include_dirs=['../cppsrc', numpy.get_include()],
                               extra_compile_args=['-std=c++11'],
                               extra_link_args=['-std=c++11'],
