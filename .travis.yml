@@ -11,4 +11,4 @@ install:
   - cd maxtree && python setup.py install && cd ..
 
 script:
-  - pytest
+  - py.test
