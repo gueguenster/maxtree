@@ -2,11 +2,11 @@
 implements the maxtree algorithm with python binding
 
 # requirements
-* install google test: https://github.com/google/googletest
 * install numpy >=1.8
-* install g++ supporting the -std=c++11 option
+
 
 # building from source
+* install g++ supporting the -std=c++11 option
 ```
  git clone https://github.com/gueguenster/maxtree
  cd maxtree/maxtree && python setup.py install

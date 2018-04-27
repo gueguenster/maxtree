@@ -1,14 +1,17 @@
 language: python
 python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-
+- '2.7'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
 install:
-  - pip install -r requirements.txt
-  - cd maxtree && python setup.py install && cd ..
-
+- pip install -r requirements.txt
+- cd maxtree && python setup.py install && cd ..
 script:
-  - py.test
+- py.test
+deploy:
+  provider: pypi
+  user: gueguenster
+  password:
+    secure: lQ5dDsj2p44jhgSNLSA+S8uw78TNCsqsraghqb5WHpcjmj0Kg5skUw8Zwa4fAto0ReniAxDMjIJgNPLzTDnN0/qCt/yc/CizwQR7Yl8/rMbI3Sk+MxHpJ/siQpTzhtm0IuFjoYhzTURlcvMtFhqD91/2DQqiyiTx5pjceCKwctpx93EzKZBa3SOzxr9JxlOzicHFWOQG9ZdZWZMaszgXi7IrIcgBaYXnxwsD2RRcm61Adcw3ZKixLqTA2qR9jhi62a1n5GhZl8qBNxZSTa72IRmLab/zHDiXrretuxmgVcN2yjgM3YGggtsV1ZnR1+BSNx0Emt5WENFPwZ6o+xxDVFQm1z997efQSFCsTvm8VCjM7+jzPeOUGeJEuRW7NXh2LtKis2dfUIqzWw8QfVp+6+YCHQhfCZfgbVHdb6+/151lZMxlSmeoLZjDmaRvl46iFnFv6U/ySjHvIZ87MP/76AiXB6AQnWHQd8/HBC+/1e69xf9iIflvCIhti1eCj5keyFspFFhJ1X6sHdplty30JcrRnyEtNOKk3j2FqXUe/G5I7qV7oLaCJTnB9LzEAFJViq/b+mhgwdY5dYwX9qoBtWVzBT+g6yKaPcpIr5SBS6mDODkxNlAzTDCgAK4P9YMp6opNNUqak+F3o06JhYWOpET+jP3jmPd34w+oSCwvahs=
