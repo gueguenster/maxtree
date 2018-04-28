@@ -16,5 +16,4 @@ deploy:
   on:
     branch: master
     python: '3.6'
-    on:
-      tags: true
+    tags: true
