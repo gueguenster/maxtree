@@ -2,7 +2,7 @@
 COPYRIGHT
 
 All contributions by L. Gueguen:
-Copyright (c) 2016
+Copyright (c) 2020
 All rights reserved.
 
 
