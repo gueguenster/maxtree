@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <set>
 #include <iostream>
+#include <iterator>
 
 using namespace std;
 
@@ -620,7 +621,7 @@ void momentsAddPixel(ui x, ui y, vector<double>& att){
 	}
 }
 void momentsMerge(vector<double>& paratt, vector<double>& att){
-	for(int i=0; i< paratt.size(); ++i){
+	for(ui i=0; i< paratt.size(); ++i){
 		paratt[i]+=att[i];
 	}
 }

@@ -150,5 +150,4 @@ class Test(unittest.TestCase):
         #self.assertEqual((mtt.feats == mt.feats).all(), "pickling did not work")
         
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.test']
     unittest.main()

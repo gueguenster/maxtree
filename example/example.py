@@ -36,7 +36,7 @@ mt = MaxTree(img_c) # compute max tree
 
 lyr = np.float32(img_rgb[:,:,1]) # compute a layer
 mt.compute_layer_attributes(lyr) # compute layer features per cc
-print mt 
+print(mt)
 
 avg_std = mt.getAttributes(['average_0','std_0']) # retrieve the layer average and std per cc
 idx_retained = np.logical_and(avg_std[:,0]<100, avg_std[:,1]<30).nonzero()[0] # select the cc 
