@@ -30,10 +30,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import unittest
 
+
+import numpy as np
 import torch
 import _maxtreetorch as maxtreetorch
 
-import numpy as np
 from maxtree.component_tree import MaxTree
 from maxtree.maxtree_torch import DifferentialMaxtree
 

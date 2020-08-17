@@ -33,8 +33,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from maxtree import maxtree
 import numpy as np
+
+from maxtree import maxtree
+
 
 class MaxTree(object):
     '''
