@@ -80,6 +80,9 @@ class MaxtreeTorchTest(unittest.TestCase):
 
         model = DifferentialMaxtree()
         model.initialize()
+        if False:
+            model.cuda()
+            reference = reference.cuda()
         optimizer = torch.optim.Adam(model.parameters(), lr)
         previous_loss = None
         for i in range(50):
@@ -91,7 +94,6 @@ class MaxtreeTorchTest(unittest.TestCase):
             if previous_loss is not None:
                 self.assertLessEqual(loss, previous_loss)
                 previous_loss = loss
-
 
 if __name__ == "__main__":
     unittest.main()
