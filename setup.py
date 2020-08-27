@@ -13,7 +13,8 @@ maxtree_extension = Extension('_maxtree',
                               )
 
 torch_extension = cpp_extension.CppExtension('_maxtreetorch',
-                                             ['./cppsrc/maxtree.cpp', './cppsrc/torch.cpp'])
+                                             ['./cppsrc/maxtree.cpp', './cppsrc/torch.cpp'],
+                                             extra_compile_args=['-fopenmp'])
 
 setup(name='maxtree',
       version=__version__,

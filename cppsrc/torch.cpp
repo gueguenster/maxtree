@@ -30,11 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <torch/extension.h>
 #include <vector>
+#include <map>
+#include <omp.h>
 
 #include "maxtree.h"
 
 std::vector<at::Tensor> maxtree(torch::Tensor channel) {
-
   auto width = (unsigned int) channel.size(0);
   auto height = (unsigned int) channel.size(1);
 
@@ -74,6 +75,27 @@ std::vector<at::Tensor> maxtree(torch::Tensor channel) {
 
 }
 
+std::vector<torch::Tensor> maxtrees(torch::Tensor channels) {
+  // apply the maxtree in parallel
+  auto num_channels = (int) channels.size(0);
+  std::map< int, std::vector<torch::Tensor> > unordered_results;
+
+  #pragma omp parallel for
+  for(int i = 0; i< num_channels; i++){
+    auto maxtree_res = maxtree(channels[i].contiguous());
+    #pragma omp critical
+    unordered_results[i] = std::vector<torch::Tensor>();
+    unordered_results[i].insert( unordered_results[i].end(), maxtree_res.begin(), maxtree_res.end() );
+  }
+
+  // re-order the results from the map data structure
+  std::vector<torch::Tensor> results;
+  for(int i = 0; i< num_channels; i++){
+    results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
+  }
+  return results;
+}
+
 std::vector<torch::Tensor> maxtree_forward(torch::Tensor mt_parent, torch::Tensor mt_diff, torch::Tensor cc_scores) {
   // Reinstantiate the maxtree
   ui width = (ui) mt_parent.size(0);
@@ -101,6 +123,31 @@ std::vector<torch::Tensor> maxtree_forward(torch::Tensor mt_parent, torch::Tenso
   auto filtered_channel = torch::tensor(_filtered_channel, opts).reshape(dims);
 
   return {filtered_channel};
+}
+
+std::vector<torch::Tensor> many_maxtree_forward(std::vector <torch::Tensor> mt_parent_diff_cc_scores) {
+   auto nb_maxtrees = mt_parent_diff_cc_scores.size() / 3;
+   std::map< int, std::vector<torch::Tensor> > unordered_results;
+
+   // perform the forward in parallel
+   #pragma omp parallel for
+   for(unsigned int i=0; i< nb_maxtrees; ++i){
+        auto mt_parent = mt_parent_diff_cc_scores[i * 3];
+        auto mt_diff = mt_parent_diff_cc_scores[i * 3 + 1];
+        auto cc_scores = mt_parent_diff_cc_scores[i * 3 + 2];
+        auto filtered = maxtree_forward(mt_parent, mt_diff, cc_scores);
+        #pragma omp critical
+        unordered_results[i] = std::vector<torch::Tensor>();
+        unordered_results[i].insert( unordered_results[i].end(), filtered.begin(), filtered.end() );
+   }
+
+   // reorder the results
+   std::vector<torch::Tensor> results;
+   for(unsigned int i=0; i< nb_maxtrees; ++i){
+        results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
+   }
+
+   return results;
 }
 
 std::vector<torch::Tensor> maxtree_backward(torch::Tensor mt_parent, torch::Tensor mt_diff, torch::Tensor grad_filtered) {
@@ -142,8 +189,36 @@ std::vector<torch::Tensor> maxtree_backward(torch::Tensor mt_parent, torch::Tens
     return {grad_input, gradient_cc_scores};
 }
 
+std::vector<torch::Tensor> many_maxtree_backward(std::vector < torch::Tensor > mt_parent_diff_grads){
+   auto nb_maxtrees = mt_parent_diff_grads.size() / 3;
+   std::map< int, std::vector<torch::Tensor> > unordered_results;
+
+   // perform the backward in parallel
+   #pragma omp parallel for
+   for(unsigned int i=0; i< nb_maxtrees; ++i){
+        auto mt_parent = mt_parent_diff_grads[i * 3];
+        auto mt_diff = mt_parent_diff_grads[i * 3 + 1];
+        auto grad_filtered = mt_parent_diff_grads[i * 3 + 2];
+        auto back_res = maxtree_backward(mt_parent, mt_diff, grad_filtered);
+        #pragma omp critical
+        unordered_results[i] = std::vector<torch::Tensor>();
+        unordered_results[i].insert( unordered_results[i].end(), back_res.begin(), back_res.end() );
+   }
+
+   // reorder the results
+   std::vector<torch::Tensor> results;
+   for(unsigned int i=0; i< nb_maxtrees; ++i){
+        results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
+   }
+
+   return results;
+}
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("maxtree", &maxtree, "Maxtree compute");
+  m.def("maxtrees", &maxtrees, "Many Maxtree compute");
   m.def("forward", &maxtree_forward, "Maxtree forward");
+  m.def("many_forward", &many_maxtree_forward, "Many Maxtree forward");
   m.def("backward", &maxtree_backward, "Maxtree backward");
+  m.def("many_backward", &many_maxtree_backward, "Many Maxtree backward");
 }
