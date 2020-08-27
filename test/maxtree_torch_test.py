@@ -75,12 +75,12 @@ class MaxtreeTorchTest(unittest.TestCase):
 
     def test_function(self):
         reference = torch.rand(32, 32) * 25
-        reference[5:10, 5:10] = 1
+        reference[..., 5:10, 5:10] = 1
         lr = .01
 
         model = DifferentialMaxtree()
         model.initialize()
-        if False:
+        if True:
             model.cuda()
             reference = reference.cuda()
         optimizer = torch.optim.Adam(model.parameters(), lr)

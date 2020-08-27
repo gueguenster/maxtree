@@ -130,12 +130,14 @@ class DifferentialMaxtree(torch.nn.Module):
             tensor of shape (H,W)
         """
         return DifferentialMaxtreeFunction.apply(input, self.weight, self.bias)
-    
+
+from multiprocessing.pool import ThreadPool
 class CDifferentialMaxtree(torch.nn.Module):
     NUM_FEATURES = 17
 
-    def __init__(self, num_channels: int = 1):
+    def __init__(self, num_channels: int = 1, num_threads: int = 16):
         super().__init__()
+        self.num_threads = num_threads
         self.weight = torch.nn.Parameter(torch.empty(self.NUM_FEATURES, 1, num_channels))
         self.bias = torch.nn.Parameter(torch.empty(1, num_channels))
         self.initialize()
@@ -150,11 +152,16 @@ class CDifferentialMaxtree(torch.nn.Module):
         returns:
             tensor of shape (B,N,H,W)
         """
-        batched_out = []
-        for input in batched_input:
-            outputs = []
-            for idx, input_channel in enumerate(input):
-                output = DifferentialMaxtreeFunction.apply(input_channel, self.weight[..., idx], self.bias[..., idx])
-                outputs.append(output)
-            batched_out.append(torch.stack(outputs, dim=0))
+        with ThreadPool(processes=self.num_threads) as executor:
+            def func(x):
+                channel, weight, bias = x
+                return DifferentialMaxtreeFunction.apply(channel, weight, bias)
+            weights = [w[..., 0].contiguous() for w in torch.split(self.weight, 1, dim=-1)]
+            biases = [b[..., 0].contiguous() for b in torch.split(self.bias, 1, dim=-1)]
+
+            batched_out = []
+            for input in batched_input:
+                channels = [c[0] for c in torch.split(input, 1)]
+                outputs = executor.map(func, zip(channels, weights, biases))
+                batched_out.append(torch.stack(outputs, dim=0))
         return torch.stack(batched_out, dim=0)
