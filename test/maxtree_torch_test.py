@@ -74,13 +74,12 @@ class MaxtreeTorchTest(unittest.TestCase):
     #     self.assertEqual(grad_cc_scores.shape, cc_scores.shape)
     #
     def test_function(self):
-        nc = 256
-        reference = torch.rand(1, nc, 100, 136) * 25
+        nc = 10
+        reference = torch.rand(1, nc, 10, 13) * 25
         reference[..., 5:10, 5:10] = 1
         lr = .01
 
         model = CDifferentialMaxtree(num_channels=nc)
-        import time
 
         model.initialize()
         if True:
@@ -89,17 +88,14 @@ class MaxtreeTorchTest(unittest.TestCase):
         optimizer = torch.optim.Adam(model.parameters(), lr)
         previous_loss = None
         for i in range(50):
-            t0 = time.time()
-
             optimizer.zero_grad()
             filtered = model(reference)
             loss = torch.nn.MSELoss()(filtered, reference)
             loss.backward()
-            print(time.time() - t0)
             optimizer.step()
             if previous_loss is not None:
                 self.assertLessEqual(loss, previous_loss)
-                previous_loss = loss
+            previous_loss = loss
 
 if __name__ == "__main__":
     unittest.main()
