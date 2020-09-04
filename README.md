@@ -28,13 +28,13 @@ pip install -e .
 import torch
 from maxtree.maxtree_torch import DifferentialMaxtree
 
-num_channels, h, w = 10, 32, 64
+batch, num_channels, h, w = 1, 10, 32, 64
 layer = DifferentialMaxtree(num_channels=num_channels)
 
-input = torch.randint(-10, 32, (num_channels, h, w))  # the input is casted to torch.int16, so inputs range
+input = torch.randint(-10, 32, (batch, num_channels, h, w))  # the input is casted to torch.int16, so inputs range
                                                       # must be adequately scaled to loose information.
                                                       # the larger the range is, the longer the computation.
-output = layer(input)  # output is the result of Differential Maxtree filtering, of size  (num_channels, h, w)
+output = layer(input)  # output is the result of Differential Maxtree filtering, of size  (batch, num_channels, h, w)
                        # output is floating point.
 ```
 
