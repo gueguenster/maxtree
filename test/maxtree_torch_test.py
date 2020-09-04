@@ -30,13 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import unittest
 
-
 import numpy as np
 import torch
 import _maxtreetorch as maxtreetorch
 
 from maxtree.component_tree import MaxTree
-from maxtree.maxtree_torch import CDifferentialMaxtree, ManyDifferentialMaxtreeFunction
+from maxtree.maxtree_torch import CDifferentialMaxtree
 
 
 class MaxtreeTorchTest(unittest.TestCase):
@@ -87,7 +86,7 @@ class MaxtreeTorchTest(unittest.TestCase):
             reference = reference.cuda()
         optimizer = torch.optim.Adam(model.parameters(), lr)
         previous_loss = None
-        for i in range(50):
+        for i in range(10):
             optimizer.zero_grad()
             filtered = model(reference)
             loss = torch.nn.MSELoss()(filtered, reference)
@@ -96,6 +95,7 @@ class MaxtreeTorchTest(unittest.TestCase):
             if previous_loss is not None:
                 self.assertLessEqual(loss, previous_loss)
             previous_loss = loss
+
 
 if __name__ == "__main__":
     unittest.main()
