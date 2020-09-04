@@ -6,6 +6,7 @@
 # the SWIG interface file instead.
 
 from sys import version_info as _swig_python_version_info
+
 if _swig_python_version_info >= (2, 7, 0):
     def swig_import_helper():
         import importlib
@@ -15,6 +16,8 @@ if _swig_python_version_info >= (2, 7, 0):
             return importlib.import_module(mname)
         except ImportError:
             return importlib.import_module('_maxtree')
+
+
     _maxtree = swig_import_helper()
     del swig_import_helper
 elif _swig_python_version_info >= (2, 6, 0):
@@ -33,6 +36,8 @@ elif _swig_python_version_info >= (2, 6, 0):
             if fp is not None:
                 fp.close()
         return _mod
+
+
     _maxtree = swig_import_helper()
     del swig_import_helper
 else:
@@ -48,6 +53,7 @@ try:
     import builtins as __builtin__
 except ImportError:
     import __builtin__
+
 
 def _swig_setattr_nondynamic(self, class_type, name, value, static=1):
     if (name == "thisown"):
@@ -88,13 +94,17 @@ def _swig_repr(self):
         strthis = ""
     return "<%s.%s; %s >" % (self.__class__.__module__, self.__class__.__name__, strthis,)
 
+
 try:
     _object = object
     _newclass = 1
 except __builtin__.Exception:
     class _object:
         pass
+
+
     _newclass = 0
+
 
 class MT(_object):
     __swig_setmethods__ = {}
@@ -180,18 +190,19 @@ class MT(_object):
         return _maxtree.MT_getNbCC(self)
 
     def __getstate__(self):
-        args={}
+        args = {}
         args['bytes'] = self.serialize_swig()
         return args
+
     def __setstate__(self, state):
         dummy = int(0)
         self.__init__(dummy, state['bytes'])
 
     __swig_destroy__ = _maxtree.delete_MT
     __del__ = lambda self: None
+
+
 MT_swigregister = _maxtree.MT_swigregister
 MT_swigregister(MT)
 
 # This file is compatible with both classic and new-style classes.
-
-

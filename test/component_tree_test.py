@@ -33,9 +33,11 @@ from __future__ import division
 from __future__ import print_function
 
 import unittest
-from maxtree.component_tree import MaxTree
+
 import numpy as np
-import pickle
+
+from maxtree.component_tree import MaxTree
+
 
 class Test(unittest.TestCase):
 
@@ -148,7 +150,7 @@ class Test(unittest.TestCase):
         #print mt.mt.getNbCC()
         #self.assertEqual(mtt.mt.getNbCC(), mt.mt.getNbCC(), "pickling did not work")
         #self.assertEqual((mtt.feats == mt.feats).all(), "pickling did not work")
-        
+
+
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.test']
     unittest.main()

@@ -6,3 +6,4 @@ maxtree.egg-info/
 .project
 .idea
 .pytest_cache/
+*.so
