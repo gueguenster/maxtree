@@ -46,33 +46,33 @@ class MaxtreeTorchTest(unittest.TestCase):
         self.img_short_torch = torch.tensor(self.img_short_np)
         pass
 
-    # def test_construction(self):
-    #     # construction
-    #     mt = MaxTree(self.img_ushort_np)
-    #     self.assertIsNotNone(mt, "could not create max tree on uint16")
-    #     mt.compute_shape_attributes()
-    #     attributes = mt.getAttributes()
-    #
-    #     mt_parent, mt_diff, mt_attributes = maxtreetorch.maxtree(self.img_short_torch)
-    #     self.assertEqual(attributes.shape[0], mt_attributes.shape[0])
-    #     self.assertLessEqual(torch.norm(torch.tensor(attributes[:, 0]) - mt_attributes[:, 0]), 1e-7)
-    #     self.assertLessEqual(torch.norm(torch.tensor(attributes[:, 1]) - mt_attributes[:, 1]), 1e-7)
-    #
-    #     # filter
-    #     idx = (attributes[:, 0] > -1).nonzero()[0]
-    #     scores = np.ones(idx.shape, np.float32)
-    #     out = mt.filter(idx, scores)
-    #
-    #     cc_scores = torch.ones_like(mt_attributes[:, 0])
-    #     t_out = maxtreetorch.forward(mt_parent, mt_diff, cc_scores)[0]
-    #     self.assertLessEqual(torch.norm(torch.tensor(out) - t_out), 1e-7)
-    #
-    #     # backward
-    #     grad = torch.rand(self.img_short_torch.shape) - 0.5
-    #     grad_input, grad_cc_scores = maxtreetorch.backward(mt_parent, mt_diff, grad)
-    #     self.assertEqual(grad_input.shape, self.img_short_torch.shape)
-    #     self.assertEqual(grad_cc_scores.shape, cc_scores.shape)
-    #
+    def test_construction(self):
+        # construction
+        mt = MaxTree(self.img_ushort_np)
+        self.assertIsNotNone(mt, "could not create max tree on uint16")
+        mt.compute_shape_attributes()
+        attributes = mt.getAttributes()
+
+        mt_parent, mt_diff, mt_attributes = maxtreetorch.maxtree(self.img_short_torch)
+        self.assertEqual(attributes.shape[0], mt_attributes.shape[0])
+        self.assertLessEqual(torch.norm(torch.tensor(attributes[:, 0]) - mt_attributes[:, 0]), 1e-7)
+        self.assertLessEqual(torch.norm(torch.tensor(attributes[:, 1]) - mt_attributes[:, 1]), 1e-7)
+
+        # filter
+        idx = (attributes[:, 0] > -1).nonzero()[0]
+        scores = np.ones(idx.shape, np.float32)
+        out = mt.filter(idx, scores)
+
+        cc_scores = torch.ones_like(mt_attributes[:, 0])
+        t_out = maxtreetorch.forward(mt_parent, mt_diff, cc_scores)[0]
+        self.assertLessEqual(torch.norm(torch.tensor(out) - t_out), 1e-7)
+
+        # backward
+        grad = torch.rand(self.img_short_torch.shape) - 0.5
+        grad_input, grad_cc_scores = maxtreetorch.backward(mt_parent, mt_diff, grad)
+        self.assertEqual(grad_input.shape, self.img_short_torch.shape)
+        self.assertEqual(grad_cc_scores.shape, cc_scores.shape)
+
     def test_function(self):
         nc = 10
         reference = torch.rand(1, nc, 10, 13) * 25
@@ -82,7 +82,7 @@ class MaxtreeTorchTest(unittest.TestCase):
         model = CDifferentialMaxtree(num_channels=nc)
 
         model.initialize()
-        if True:
+        if torch.cuda.is_available():
             model.cuda()
             reference = reference.cuda()
         optimizer = torch.optim.Adam(model.parameters(), lr)
