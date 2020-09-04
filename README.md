@@ -1,34 +1,46 @@
 # maxtree
-implements the maxtree algorithm with python binding
+implements the maxtree algorithm with python binding, using numpy or torch.
 
-# requirements
-* install numpy >=1.8
-
-# Pip
-pip install MaxTree
-
-# building from source
-* install g++ supporting the -std=c++11 option
-```commandline
- git clone https://github.com/gueguenster/maxtree
- cd maxtree 
- python setup.py install
+## Installation
+### pip
+```shell script
+pip install maxtree
 ```
 
-to test the installation
-```commandline
-python setup.py develop 
-pytest
+### dev
+```shell script
+git clone https://github.com/gueguenster/maxtree && cd maxtree
+pip install -r requirements.txt 
+pip install -e .
 ```
 
-On MacOS
+### MacOS
 ```commandline
 conda install --channel https://conda.anaconda.org/anaconda clangxx_osx-64
+git clone https://github.com/gueguenster/maxtree && cd maxtree
+pip install -r requirements.txt 
+pip install -e .
 ```
 
-# Usage example
-see example/example.py
+## Usage example
+### Differential maxtree - pytorch
+```python
+import torch
+from maxtree.maxtree_torch import DifferentialMaxtree
+
+num_channels, h, w = 10, 32, 64
+layer = DifferentialMaxtree(num_channels=num_channels)
+
+input = torch.randint(-10, 32, (num_channels, h, w))  # the input is casted to torch.int16, so inputs range
+                                                      # must be adequately scaled to loose information.
+                                                      # the larger the range is, the longer the computation.
+output = layer(input)  # output is the result of Differential Maxtree filtering, of size  (num_channels, h, w)
+                       # output is floating point.
 ```
+
+### Numpy
+see [example/example.py](example/example.py)
+```python
 import matplotlib.pyplot as plt
 import numpy as np
 from maxtree.component_tree import MaxTree

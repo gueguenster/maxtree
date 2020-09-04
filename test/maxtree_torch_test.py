@@ -35,7 +35,7 @@ import torch
 import _maxtreetorch as maxtreetorch
 
 from maxtree.component_tree import MaxTree
-from maxtree.maxtree_torch import CDifferentialMaxtree
+from maxtree.maxtree_torch import DifferentialMaxtree
 
 
 class MaxtreeTorchTest(unittest.TestCase):
@@ -78,7 +78,7 @@ class MaxtreeTorchTest(unittest.TestCase):
         reference[..., 5:10, 5:10] = 1
         lr = .01
 
-        model = CDifferentialMaxtree(num_channels=nc)
+        model = DifferentialMaxtree(num_channels=nc)
 
         model.initialize()
         if torch.cuda.is_available():

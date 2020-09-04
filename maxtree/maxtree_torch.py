@@ -220,7 +220,7 @@ class ManyDifferentialMaxtreeFunction(Function):
         return grad_input, grad_weight, grad_bias
 
 
-class DifferentialMaxtree(torch.nn.Module):
+class SingleChannelDifferentialMaxtree(torch.nn.Module):
     NUM_FEATURES = 17
 
     def __init__(self):
@@ -242,7 +242,7 @@ class DifferentialMaxtree(torch.nn.Module):
         return DifferentialMaxtreeFunction.apply(input, self.weight, self.bias)
 
 
-class CDifferentialMaxtree(torch.nn.Module):
+class DifferentialMaxtree(torch.nn.Module):
     NUM_FEATURES = 17
 
     def __init__(self, num_channels: int = 1):
