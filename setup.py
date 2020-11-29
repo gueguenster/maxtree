@@ -35,7 +35,7 @@ setup(name='maxtree',
       ext_modules=[maxtree_extension, torch_extension],
       packages=['maxtree'],
       include_package_data=True,
-      python_requires='>=3.7',
+      python_requires='>=3.6',
       cmdclass={
           'build_ext': cpp_extension.BuildExtension
       },
