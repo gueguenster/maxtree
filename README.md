@@ -10,15 +10,7 @@ pip install maxtree
 ### dev
 ```shell script
 git clone https://github.com/gueguenster/maxtree && cd maxtree
-pip install -r requirements.txt 
-pip install -e .
-```
-
-### MacOS
-```commandline
-conda install --channel https://conda.anaconda.org/anaconda clangxx_osx-64
-git clone https://github.com/gueguenster/maxtree && cd maxtree
-pip install -r requirements.txt 
+# conda install --channel https://conda.anaconda.org/anaconda clangxx_osx-64 for macos
 pip install -e .
 ```
 

@@ -1,15 +1,25 @@
 #!/usr/bin/env python
 
+# Get numpy and pytorch first
+MIN_NUMPY_VERSION = '1.8.0'
+MIN_TORCH_VERSION = '1.2.0'
+
+from setuptools import dist
+
+dist.Distribution().fetch_build_eggs(['torch>={}'.format(MIN_TORCH_VERSION),
+                                      'numpy>={}'.format(MIN_NUMPY_VERSION)])
+
+# Build the extensions, and installs
+import os
 from setuptools import setup, Extension
 import numpy
 from torch.utils import cpp_extension
 from maxtree import __version__
 
+MAXTREE_CPP_SRC = os.path.join(os.path.dirname(__file__), 'cppsrc')
 maxtree_extension = Extension('_maxtree',
                               sources=['./maxtree/maxtree_wrap.cpp', './cppsrc/maxtree.cpp'],
-                              include_dirs=['./cppsrc', numpy.get_include()],
-                              extra_compile_args=['-std=c++11'],
-                              extra_link_args=['-std=c++11'],
+                              include_dirs=[MAXTREE_CPP_SRC, numpy.get_include()],
                               )
 
 torch_extension = cpp_extension.CppExtension('_maxtreetorch',
@@ -25,10 +35,12 @@ setup(name='maxtree',
       ext_modules=[maxtree_extension, torch_extension],
       packages=['maxtree'],
       include_package_data=True,
+      python_requires='>=3.6',
       cmdclass={
           'build_ext': cpp_extension.BuildExtension
       },
       install_requires=[
-          "torch>=1.4",
-      ]
+          "numpy>={}".format(MIN_NUMPY_VERSION),
+          "torch>={}".format(MIN_TORCH_VERSION),
+      ],
       )

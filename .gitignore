@@ -7,3 +7,4 @@ maxtree.egg-info/
 .idea
 .pytest_cache/
 *.so
+.eggs/
