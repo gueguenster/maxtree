@@ -16,6 +16,7 @@ pip install -e .
 
 ## Usage example
 ### Differential maxtree - pytorch
+see [example/differential.ipynb](example/differential.ipynb)
 ```python
 import torch
 from maxtree.maxtree_torch import DifferentialMaxtree
