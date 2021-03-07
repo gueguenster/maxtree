@@ -39,7 +39,6 @@ std::vector<at::Tensor> maxtree(torch::Tensor channel) {
   auto width = (unsigned int) channel.size(0);
   auto height = (unsigned int) channel.size(1);
 
-
   //Maxtree
   auto maxtree = MaxTree<short>(channel.data_ptr<short>(), width, height );
   maxtree.compute();
@@ -50,6 +49,10 @@ std::vector<at::Tensor> maxtree(torch::Tensor channel) {
   vector<int> parent(begin(maxtree.getParent()), end(maxtree.getParent()));   //check that values are not overflowing
   auto opts = torch::TensorOptions().dtype(torch::kInt32);
   auto mt_parent = torch::tensor(parent, opts).reshape(dims);
+
+  //CC2PixelHeaders
+  vector<int> cc2ph(begin(maxtree.getCC2PixelHeader()), end(maxtree.getCC2PixelHeader()));
+  auto mt_cc2ph = torch::tensor(cc2ph, opts);
 
   //Diff
   opts = torch::TensorOptions().dtype(torch::kInt16);
@@ -71,49 +74,36 @@ std::vector<at::Tensor> maxtree(torch::Tensor channel) {
   auto _mt_attributes = torch::tensor(attributes, opts_attr).reshape(attr_dims);
   auto mt_attributes = _mt_attributes.to(torch::kFloat32);
 
-  return {mt_parent, mt_diff, mt_attributes};
+  return {mt_parent, mt_diff, mt_cc2ph, mt_attributes};
 
 }
 
-std::vector<torch::Tensor> maxtrees(torch::Tensor channels) {
-  // apply the maxtree in parallel
-  auto num_channels = (int) channels.size(0);
-  std::map< int, std::vector<torch::Tensor> > unordered_results;
-
-  #pragma omp parallel for
-  for(int i = 0; i< num_channels; i++){
-    auto maxtree_res = maxtree(channels[i].contiguous());
-    #pragma omp critical
-    unordered_results[i] = std::vector<torch::Tensor>();
-    unordered_results[i].insert( unordered_results[i].end(), maxtree_res.begin(), maxtree_res.end() );
-  }
-
-  // re-order the results from the map data structure
-  std::vector<torch::Tensor> results;
-  for(int i = 0; i< num_channels; i++){
-    results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
-  }
-  return results;
-}
-
-std::vector<torch::Tensor> maxtree_forward(torch::Tensor mt_parent, torch::Tensor mt_diff, torch::Tensor cc_scores) {
+std::vector<torch::Tensor> maxtree_forward(torch::Tensor mt_parent, torch::Tensor mt_diff,
+    torch::Tensor mt_cc2ph,
+    torch::Tensor cc_scores) {
   // Reinstantiate the maxtree
   ui width = (ui) mt_parent.size(0);
   ui height = (ui) mt_parent.size(1);
+  ui nbCCs = (ui) mt_cc2ph.size(0);
   auto _parent =  mt_parent.data_ptr<int>();
+  auto _cc2ph = mt_cc2ph.data_ptr<int>();
   auto _diff = mt_diff.data_ptr<short>();
   const vector<ui> parent(_parent, _parent + width*height);
+  const vector<ui> cc2ph(_cc2ph, _cc2ph + nbCCs);
   const vector<short> diff(_diff, _diff + width*height);
-  auto maxtree = MaxTree<short>(parent, diff, width, height);
+  auto maxtree = MaxTree<short>(parent, diff, cc2ph, width, height);
 
   // Convert the scores
   vector < pair<ui, float> > cc_score_vector;
   auto acc = cc_scores.accessor<float, 1>();
+  pair<ui, float> pair;
+
   for (int64_t i = 0; i <  cc_scores.size(0); i++) {
-    pair<ui, float> pair;
-    pair.first = (ui) i;
-    pair.second = acc[i];
-    cc_score_vector.push_back(pair);
+    if(acc[i] != 0.){
+        pair.first = (ui) i;
+        pair.second = acc[i];
+        cc_score_vector.push_back(pair);
+    }
   }
 
   // Filter
@@ -125,40 +115,21 @@ std::vector<torch::Tensor> maxtree_forward(torch::Tensor mt_parent, torch::Tenso
   return {filtered_channel};
 }
 
-std::vector<torch::Tensor> many_maxtree_forward(std::vector <torch::Tensor> mt_parent_diff_cc_scores) {
-   auto nb_maxtrees = mt_parent_diff_cc_scores.size() / 3;
-   std::map< int, std::vector<torch::Tensor> > unordered_results;
+std::vector<torch::Tensor> maxtree_backward(torch::Tensor mt_parent, torch::Tensor mt_diff,
+    torch::Tensor mt_cc2ph,
+    torch::Tensor grad_filtered) {
 
-   // perform the forward in parallel
-   #pragma omp parallel for
-   for(unsigned int i=0; i< nb_maxtrees; ++i){
-        auto mt_parent = mt_parent_diff_cc_scores[i * 3];
-        auto mt_diff = mt_parent_diff_cc_scores[i * 3 + 1];
-        auto cc_scores = mt_parent_diff_cc_scores[i * 3 + 2];
-        auto filtered = maxtree_forward(mt_parent, mt_diff, cc_scores);
-        #pragma omp critical
-        unordered_results[i] = std::vector<torch::Tensor>();
-        unordered_results[i].insert( unordered_results[i].end(), filtered.begin(), filtered.end() );
-   }
-
-   // reorder the results
-   std::vector<torch::Tensor> results;
-   for(unsigned int i=0; i< nb_maxtrees; ++i){
-        results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
-   }
-
-   return results;
-}
-
-std::vector<torch::Tensor> maxtree_backward(torch::Tensor mt_parent, torch::Tensor mt_diff, torch::Tensor grad_filtered) {
     // Reinstantiate the maxtree
     ui width = (ui) mt_parent.size(0);
     ui height = (ui) mt_parent.size(1);
+    ui nbCCs = (ui) mt_cc2ph.size(0);
     auto _parent =  mt_parent.data_ptr<int>();
     auto _diff = mt_diff.data_ptr<short>();
+    auto _cc2ph = mt_cc2ph.data_ptr<int>();
     const vector<ui> parent(_parent, _parent + width*height);
+    const vector<ui> cc2ph(_cc2ph, _cc2ph + nbCCs);
     const vector<short> diff(_diff, _diff + width*height);
-    auto maxtree = MaxTree<short>(parent, diff, width, height);
+    auto maxtree = MaxTree<short>(parent, diff, cc2ph, width, height);
 
     // CC score and input gradient
     float * accessor = grad_filtered.data_ptr<float>();
@@ -189,36 +160,9 @@ std::vector<torch::Tensor> maxtree_backward(torch::Tensor mt_parent, torch::Tens
     return {grad_input, gradient_cc_scores};
 }
 
-std::vector<torch::Tensor> many_maxtree_backward(std::vector < torch::Tensor > mt_parent_diff_grads){
-   auto nb_maxtrees = mt_parent_diff_grads.size() / 3;
-   std::map< int, std::vector<torch::Tensor> > unordered_results;
-
-   // perform the backward in parallel
-   #pragma omp parallel for
-   for(unsigned int i=0; i< nb_maxtrees; ++i){
-        auto mt_parent = mt_parent_diff_grads[i * 3];
-        auto mt_diff = mt_parent_diff_grads[i * 3 + 1];
-        auto grad_filtered = mt_parent_diff_grads[i * 3 + 2];
-        auto back_res = maxtree_backward(mt_parent, mt_diff, grad_filtered);
-        #pragma omp critical
-        unordered_results[i] = std::vector<torch::Tensor>();
-        unordered_results[i].insert( unordered_results[i].end(), back_res.begin(), back_res.end() );
-   }
-
-   // reorder the results
-   std::vector<torch::Tensor> results;
-   for(unsigned int i=0; i< nb_maxtrees; ++i){
-        results.insert(results.end(), unordered_results[i].begin(), unordered_results[i].end());
-   }
-
-   return results;
-}
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("maxtree", &maxtree, "Maxtree compute");
-  m.def("maxtrees", &maxtrees, "Many Maxtree compute");
   m.def("forward", &maxtree_forward, "Maxtree forward");
-  m.def("many_forward", &many_maxtree_forward, "Many Maxtree forward");
   m.def("backward", &maxtree_backward, "Maxtree backward");
-  m.def("many_backward", &many_maxtree_backward, "Many Maxtree backward");
 }

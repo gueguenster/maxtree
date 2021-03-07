@@ -106,6 +106,25 @@ MaxTree< PixelType >::MaxTree(const vector<ui> & par, const vector<PixelType> & 
 }
 
 template < typename PixelType >
+MaxTree< PixelType >::MaxTree(const vector<ui> & par, const vector<PixelType> & di, const vector<ui> & cc2pixelhdr,
+	    unsigned int w, unsigned int h){
+	width = w;
+	height = h;
+	nbpixels = w*h;
+
+	parent = par;
+	diff = di;
+
+    cc2pixelheader = cc2pixelhdr;
+    for(ui cc_idx=0; cc_idx<cc2pixelheader.size(); ++cc_idx){
+        pixelheader2cc[cc2pixelheader[cc_idx]] = cc_idx;
+    }
+
+	//recompute the image
+	computeImage();
+}
+
+template < typename PixelType >
 MaxTree< PixelType >::MaxTree(unsigned int dummy, unsigned int * retained, unsigned int lr){
 	width = retained[0];
 	height = retained[1];
@@ -741,18 +760,20 @@ template < typename PixelType >
 vector < vector < double > > MaxTree<PixelType>::computeShapeAttributes( ){
 	// computes 15 shape attributes
 	// xmin, ymin, xmax, ymax, area, angle, pca_big, pca_small, hu_1, hu_2, ... , hu_7
+
 	vector < vector < double > > mom_att( getNbCC() );
 	vector < vector < double > > bbox_att( getNbCC() );
+	int cc_idx=0;
 	for(ui p=0;p<nbpixels;++p){
 		ui x = p%width;
 		ui y = p/width;
 		if(diff[p]){
-			momentsAddPixel(x,y,mom_att[ pixelheader2cc[p] ]);
-			bboxAddPixel(x,y,bbox_att[ pixelheader2cc[p] ]);
+		    cc_idx = pixelheader2cc[p];
 		}else{
-			momentsAddPixel(x,y,mom_att[ pixelheader2cc[ parent[p] ]]);
-			bboxAddPixel(x,y,bbox_att[ pixelheader2cc[ parent[p] ]]);
+		    cc_idx = pixelheader2cc[ parent[p] ];
 		}
+		momentsAddPixel(x,y,mom_att[ cc_idx ]);
+		bboxAddPixel(x,y,bbox_att[ cc_idx ]);
 	}
 
 	for(ui cc=0; cc<getNbCC();++cc){

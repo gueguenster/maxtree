@@ -95,6 +95,8 @@ public:
 	MaxTree(const vector<PixelType> & imarray, unsigned int width, unsigned int height );
 	MaxTree(const vector<PixelType> & imarray, unsigned int width, unsigned int height , int connectivity);
 	MaxTree(const vector<ui> & parent, const vector<PixelType> & diff, unsigned int width, unsigned int height);
+	MaxTree(const vector<ui> & parent, const vector<PixelType> & diff, const vector<ui> & cc2pixelheader,
+	    unsigned int width, unsigned int height);
 	MaxTree(PixelType * imarray, unsigned int width, unsigned int height); // for swig
 	MaxTree(unsigned int dummy, unsigned int * retained, unsigned int lr); // for swig pickling
 
@@ -170,6 +172,10 @@ public:
 
 	const vector<ui>& getParent() const {
 		return parent;
+	}
+
+	const vector<ui>& getCC2PixelHeader() const {
+		return cc2pixelheader;
 	}
 
 	void serialize_swig(unsigned int ** par, unsigned int *l) const {
