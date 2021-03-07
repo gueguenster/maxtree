@@ -43,9 +43,8 @@ def _log_scaling(feats):
     lshape = torch.sqrt(feats[:, 7:8]) / (torch.sqrt(feats[:, 6:7]) + epsilon)
     cosangle = torch.cos(feats[:, 5:6])
     sinangle = torch.sin(feats[:, 5:6])
-    for j in range(5, feats.shape[1]):
-        feats[:, j] = torch.log(torch.abs(feats[:, j]) + epsilon)
-
+    feats[:, 4] = torch.log(feats[:, 4])
+    feats[:, 6:] = torch.log(torch.abs(feats[:, 6:]) + epsilon) * torch.sign(feats[:, 6:])
     feats = torch.cat((feats[:, :5], feats[:, 6:], lshape, cosangle, sinangle), dim=1)
     return feats
 
@@ -69,15 +68,15 @@ class DifferentialMaxtreeFunction(Function):
         cpu_bias = bias.to(torch.device("cpu"))
 
         # extract maxtree
-        maxtree_parent, maxtree_diff, attributes = maxtreetorch.maxtree(short_input)
+        maxtree_parent, maxtree_diff, maxtree_cc2hdr, attributes = maxtreetorch.maxtree(short_input)
         rescaled_attributes = _log_scaling(attributes)
 
         # sigmoid(attributes * W + B)
         linear_attr = rescaled_attributes.mm(cpu_weight) + cpu_bias[None, :]
         cc_scores = torch.sigmoid(linear_attr)[:, 0]
 
-        ctx.save_for_backward(maxtree_parent, maxtree_diff, cc_scores, rescaled_attributes)
-        filtered_output = maxtreetorch.forward(maxtree_parent, maxtree_diff, cc_scores.float())[0]
+        ctx.save_for_backward(maxtree_parent, maxtree_diff, maxtree_cc2hdr, cc_scores, rescaled_attributes)
+        filtered_output = maxtreetorch.forward(maxtree_parent, maxtree_diff, maxtree_cc2hdr, cc_scores.float())[0]
 
         # reset the maxtree output on the input device
         return filtered_output.to(input.device)
@@ -92,11 +91,12 @@ class DifferentialMaxtreeFunction(Function):
             delta_L / delta_weight: float tensor of shape (17,1)
             delat_L / delta_bias: float tensor of shape (1,)
         """
-        maxtree_parent, maxtree_diff, cc_scores, rescaled_attributes = ctx.saved_tensors
+        maxtree_parent, maxtree_diff, maxtree_cc2hdr, cc_scores, rescaled_attributes = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
 
         cpu_grad_filtered = grad_filtered.to(torch.device("cpu")).contiguous()
-        _grad_input, _grad_cc_score = maxtreetorch.backward(maxtree_parent, maxtree_diff, cpu_grad_filtered)
+        _grad_input, _grad_cc_score = maxtreetorch.backward(maxtree_parent, maxtree_diff, maxtree_cc2hdr,
+                                                            cpu_grad_filtered)
 
         sigmoid_derivative = cc_scores * (1 - cc_scores)
         if ctx.needs_input_grad[0]:
@@ -130,34 +130,22 @@ class ManyDifferentialMaxtreeFunction(Function):
         cpu_weight = weight.to(torch.device("cpu"))
         cpu_bias = bias.to(torch.device("cpu"))
 
-        # extract maxtree
-        all = maxtreetorch.maxtrees(short_input)
-        mt_parents = []
-        mt_diffs = []
-        mt_rescaled_attributes = []
-        mt_cc_scores = []
-        for i in range(len(all) // 3):
-            mt_parents.append(all[i * 3])
-            mt_diffs.append(all[i * 3 + 1])
-            rescaled_attributes = _log_scaling(all[i * 3 + 2])
-            mt_rescaled_attributes.append(rescaled_attributes)
+        # extract maxtrees
+        maxtrees = []
+        outputs = []
+        for single_channel, w, b in zip(short_input, cpu_weight, cpu_bias):
+            mt_par, mt_diff, mt_cc2ph, mt_attr = maxtreetorch.maxtree(single_channel)
+            rescaled_attributes = _log_scaling(mt_attr)
 
-            # sigmoid(attributes * W + B)
-            linear_attr = rescaled_attributes.mm(cpu_weight[i]) + cpu_bias[i][None, :]
+            linear_attr = rescaled_attributes.mm(w) + b[None, :]
             cc_scores = torch.sigmoid(linear_attr)[:, 0]
-            mt_cc_scores.append(cc_scores)
+            maxtrees += [mt_par, mt_diff, mt_cc2ph, cc_scores, rescaled_attributes]
 
-        tensors_to_save = mt_parents + mt_diffs + mt_cc_scores + mt_rescaled_attributes
-        ctx.save_for_backward(*tensors_to_save)
-        reorg_tensors = []
-        for p, d, cc in zip(mt_parents, mt_diffs, mt_cc_scores):
-            reorg_tensors.append(p)
-            reorg_tensors.append(d)
-            reorg_tensors.append(cc.float())
-        filtered_outputs = maxtreetorch.many_forward(reorg_tensors)
+            filtered_output = maxtreetorch.forward(mt_par, mt_diff, mt_cc2ph, cc_scores.float())[0]
+            outputs.append(filtered_output.to(input.device))
 
-        # reset the maxtree output on the input device
-        return torch.stack(filtered_outputs).to(input.device)
+        ctx.save_for_backward(*maxtrees)
+        return torch.stack(outputs)
 
     @staticmethod
     def backward(ctx, grad_filtered):
@@ -169,55 +157,57 @@ class ManyDifferentialMaxtreeFunction(Function):
             delta_L / delta_weight: float tensor of shape (N, 17, 1)
             delat_L / delta_bias: float tensor of shape (N, 1)
         """
-        saved_tensors = ctx.saved_tensors
-        n = len(saved_tensors) // 4
-        mt_parents = saved_tensors[:n]
-        mt_diffs = saved_tensors[n:(2*n)]
-        mt_cc_scores = saved_tensors[(2*n):(3*n)]
-        mt_rescaled_attributes = saved_tensors[(3*n):(4*n)]
-        grad_input = grad_weight = grad_bias = None
 
         cpu_grad_filtered = grad_filtered.to(torch.device("cpu")).contiguous()
-        grads_filters = [f[0] for f in torch.split(cpu_grad_filtered, 1)]
-        reorg_tensors = []
-        for p, d, f in zip(mt_parents, mt_diffs, grads_filters):
-            reorg_tensors.append(p)
-            reorg_tensors.append(d)
-            reorg_tensors.append(f)
-        grad_all = maxtreetorch.many_backward(reorg_tensors)
+        n = cpu_grad_filtered.shape[0]
 
-        many_grad_inputs = []
-        many_grad_cc_scores = []
-        for i in range(len(grad_all) // 2):
-            many_grad_inputs.append(grad_all[i * 2].to(grad_filtered.device))
-            many_grad_cc_scores.append(grad_all[i * 2 + 1].to(grad_filtered.device))
+        grad_inputs = []
+        grad_weights = []
+        grad_biass = []
 
-        sigmoid_derivatives = []
-        for cc_scores in mt_cc_scores:
-            cc_scores = cc_scores.to(grad_filtered.device)
+        for idx in range(n):
+            maxtree_parent = ctx.saved_tensors[idx * 5 + 0]
+            maxtree_diff = ctx.saved_tensors[idx * 5 + 1]
+            maxtree_cc2hdr = ctx.saved_tensors[idx * 5 + 2]
+            cc_scores = ctx.saved_tensors[idx * 5 + 3]
+            rescaled_attributes = ctx.saved_tensors[idx * 5 + 4]
+
+            local_grad_filtered = cpu_grad_filtered[idx]
+            _grad_input, _grad_cc_score = maxtreetorch.backward(maxtree_parent, maxtree_diff, maxtree_cc2hdr,
+                                                                local_grad_filtered)
+
             sigmoid_derivative = cc_scores * (1 - cc_scores)
-            sigmoid_derivatives.append(sigmoid_derivative)
+            if ctx.needs_input_grad[0]:
+                grad_input = _grad_input.to(grad_filtered.device)
+                grad_inputs.append(grad_input)
 
-        if ctx.needs_input_grad[0]:
-            grad_input = torch.stack(many_grad_inputs)
-        if ctx.needs_input_grad[1]:
-            all_weights = []
-            for _grad_cc_score, sigmoid_derivative, rescaled_attributes in zip(many_grad_cc_scores, sigmoid_derivatives,
-                                                                               mt_rescaled_attributes):
-                rescaled_attributes = rescaled_attributes.to(grad_filtered.device)
-                _grad_weight = (_grad_cc_score[:, None] * sigmoid_derivative[:, None] * rescaled_attributes).sum(dim=0)[
-                               :, None]
-                all_weights.append(_grad_weight)
-            grad_weight = torch.stack(all_weights)
-        if ctx.needs_input_grad[2]:
-            all_bias = []
-            for _grad_cc_score, sigmoid_derivative in zip(many_grad_cc_scores, sigmoid_derivatives):
+            if ctx.needs_input_grad[1]:
+                _grad_weight = (_grad_cc_score[:, None] * sigmoid_derivative[:, None] * rescaled_attributes).sum(dim=0)[:,
+                               None]
+                grad_weight = _grad_weight.to(grad_filtered.device)
+                grad_weights.append(grad_weight)
+
+            if ctx.needs_input_grad[2]:
                 _grad_bias = (_grad_cc_score * sigmoid_derivative).sum()[None]
-                all_bias.append(_grad_bias)
+                grad_bias = _grad_bias.to(grad_filtered.device)
+                grad_biass.append(grad_bias)
 
-            grad_bias = torch.stack(all_bias)
+        if len(grad_inputs) > 0:
+            grad_inputs = torch.stack(grad_inputs)
+        else:
+            grad_inputs = None
 
-        return grad_input, grad_weight, grad_bias
+        if len(grad_weights) > 0:
+            grad_weights = torch.stack(grad_weights)
+        else:
+            grad_weights = None
+
+        if len(grad_biass) > 0:
+            grad_biass = torch.stack(grad_biass)
+        else:
+            grad_biass = None
+
+        return grad_inputs, grad_weights, grad_biass
 
 
 class SingleChannelDifferentialMaxtree(torch.nn.Module):
