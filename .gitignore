@@ -8,3 +8,4 @@ maxtree.egg-info/
 .pytest_cache/
 *.so
 .eggs/
+*.ipynb_checkpoints*

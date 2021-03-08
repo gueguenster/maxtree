@@ -102,7 +102,7 @@ class MaxtreeTorchTest(unittest.TestCase):
 
     def test_function(self):
         nc = 10
-        reference = torch.rand(1, nc, 10, 13) * 25
+        reference = torch.rand(3, nc, 10, 13) * 25
         reference[..., 5:10, 5:10] = 1
         lr = .01
 
