@@ -46,7 +46,15 @@ this CC histogram, as it is unique given an image, and it allows to generate bac
 ![equation](http://latex.codecogs.com/svg.latex?I(p)%20=%20%5Csum_%7Bp%5Cin%20c,%20%5C;%20(c,%20h)%20%5Cin%20C(I)%7D%7Bh%7D%20)
 
 The Maxtree generates the CC histogram by exploiting the nested nature of the CCs at different thresholds, and organizes 
-them in a tree structure as illustrated below:
+them in a tree structure as illustrated below (Credit [5]):
+
+![maxtree](./maxtree_illustration.jpg)
+
+The Maxtree algorithm leverages a tree data structure where each pixel maintain their relation to the conencted
+components they belong through a disjoint datasets data structure. Given the Maxtree representation, all
+the CCs a pixel belongs to can be retrieved by parsing the tree from leaf to its root. In other word, as you reconstruct
+the image at a given pixel, you do not have to explore all the connected components, but need uniquely to traverse a 
+single branch. 
 
 ###Shape attributes
 ###Maxtree filtering
@@ -72,3 +80,5 @@ Processing, Mackinac Island, USA, 1997.
 
 [4] P. Salembier and M. H. F. Wilkinson, Connected operators: A review of region-based morphological image processing 
 techniques, IEEE Signal Processing Magazine, vol. 6, pp. 136–157, 2009.
+
+[5] Philippe Salembier and Luis Garrido, Connected Operators Based On Region-Tree Pruning, 2000
