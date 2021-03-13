@@ -33,6 +33,7 @@ import torch
 import _maxtreetorch as maxtreetorch
 from torch.autograd import Function
 
+NUM_FEATURES = 17
 
 def _log_scaling(feats):
     """
@@ -211,48 +212,145 @@ class ManyDifferentialMaxtreeFunction(Function):
 
 
 class SingleChannelDifferentialMaxtree(torch.nn.Module):
-    NUM_FEATURES = 17
+    """
+    SingleChannelDifferentialMaxtree is a torch layer which represents a Maxtree/mintree parameterized filter. The
+    filter learns a mapping from the tree connected components to [0,1]. These scores are then applied to each
+    connected components, resulting in the filtered output. The mapping is implemented as a logits on the shape
+    properties of each connected component.
+    Example:
+        import torch
+        from maxtree.maxtree_torch import SingleChannelDifferentialMaxtree
 
-    def __init__(self):
+        mt_layer = DifferentialMaxtree(kind='mintree')
+        mt_layer.initialize()
+
+        h, w = 64, 64
+        input = torch.randint(-10, 32, (h, w))
+        output = mt_layer(input)
+    """
+
+    def __init__(self,
+                 kind: str = 'maxtree',
+                 scaling: float = 1.0):
+        """
+        Instantiate a single channel differential maxtree layer. The layer is a torch.nn.Module and implements a
+        forward operator. The layer has internal parameters: weights of size (17, 1), and bias of size (1,).
+        These parameters define the filtering applied to the input image.
+        :param kind: a string in the set {'maxtree', 'mintree'}. When 'maxtree', the peaks of the input image are
+            analyzed. When 'mintree', the valleys of the input are considered. In practice, when 'mintree' is defined,
+            the input is inverted by multiplying it by -1, and the output is inverted back.
+        :param scaling: a scaling factor applied to the input prior to be analyzed by the maxtree algorithm. As the
+            maxtree works on torch.int16, the input is first scaled, then quantized and moved onto cpu internally.
+            The maxtree algorithm works on torch.int16(input * scaling).to(torch.device("cpu")). The output is
+            scaled back, and moved to the input type and device.
+        """
         super().__init__()
-        self.weight = torch.nn.Parameter(torch.empty(self.NUM_FEATURES, 1))
+        self.weight = torch.nn.Parameter(torch.empty(NUM_FEATURES, 1))
         self.bias = torch.nn.Parameter(torch.empty(1))
-        self.initialize()
+
+        if kind not in ['maxtree', 'mintree']:
+            raise ValueError("The kind of maxtrees must be in ['maxtree', 'mintree'].")
+        self.kind = kind
+
+        if scaling <= 0:
+            raise ValueError("The scaling factor is strictly positive.")
+        self.scaling = scaling
+        if self.kind == 'mintree':
+            self.scaling *= -1.0
 
     def initialize(self):
+        """
+        Initialize the layer weights.
+        """
         self.weight.data.uniform_(-0.01, 0.01)
         self.bias.data.fill_(0)
 
     def forward(self, input):
         """
-        input: tensor of shape (H,W). The tensor gets converted to int16 internally.
+        Runs the differential maxtree filters on the inputs.
+        :param input: tensor of shape (H,W).
+            The tensor gets multiplied by the scaling factor internally, and is casted to torch.int16 on the cpu.
+            The scaling factor allows to not loose information, prior to the quantization to int16. The output
+            is inversely scaled by the scaling factor, and casted to the input type and device.
         returns:
-            tensor of shape (H,W)
+            tensor of shape (H,W). The results of applying the differential maxtree filtering on the image.
+            The output type and device match the input type and device.
         """
         return DifferentialMaxtreeFunction.apply(input, self.weight, self.bias)
 
 
 class DifferentialMaxtree(torch.nn.Module):
-    NUM_FEATURES = 17
+    """
+    DifferentialMaxtree is a torch layer which represents multiple Maxtree/mintree parameterized filters. The
+    filters learn a mapping from the tree connected components to [0,1]. These scores are then applied to each
+    connected components, resulting in the filtered outputs. The mapping is implemented as a logits on the shape
+    properties of each connected component.
+    Example:
+        import torch
+        from maxtree.maxtree_torch import DifferentialMaxtree
 
-    def __init__(self, num_channels: int = 1):
+        b, N, h, w = 2, 10, 64, 64
+
+        mt_layer = DifferentialMaxtree(num_channels=N, scaling=10.)
+        mt_layer.initialize()
+
+        input = torch.randint(-10, 32, (b, N, h, w))
+        output = mt_layer(input)
+    """
+    def __init__(self,
+                 num_channels: int = 1,
+                 kind: str = 'maxtree',
+                 scaling: float = 1.0):
+        """
+        Instantiate a differential maxtree layer. The layer is a torch.nn.Module and implements a forward operator.
+        The layer has internal parameters: weights of size (N, 17, 1), and bias of size (N, 1). These parameters define
+        the filtering applied to the input images.
+        :param num_channels: the number of channels N that the input must have. The input size to this layer is expected
+            to be (B, N, H, W), and the output of this layer is the same.
+        :param kind: a string in the set {'maxtree', 'mintree'}. When 'maxtree', the peaks of the input images are
+            analyzed. When 'mintree', the valeys of the input are considered. In practice, when 'mintree' is defined,
+            the input is inverted by multiplying it by -1, and the output is inverted back.
+        :param scaling: a scaling factor applied to the input prior to be analyzed by the maxtree algorithm. As the
+            maxtree works on torch.int16, the input is first scaled, then quantized and moved onto cpu internally.
+            The maxtree algorithm works on torch.int16(input * scaling).to(torch.device("cpu")). The output is
+            scaled back, and moved to the input type and device.
+        """
         super().__init__()
-        self.weight = torch.nn.Parameter(torch.empty(num_channels, self.NUM_FEATURES, 1))
+        self.weight = torch.nn.Parameter(torch.empty(num_channels, NUM_FEATURES, 1))
         self.bias = torch.nn.Parameter(torch.empty(num_channels, 1))
-        self.initialize()
+
+        if kind not in ['maxtree', 'mintree']:
+            raise ValueError("The kind of maxtrees must be in ['maxtree', 'mintree'].")
+        self.kind = kind
+
+        if scaling <= 0:
+            raise ValueError("The scaling factor is strictly positive.")
+        self.scaling = scaling
+        if self.kind == 'mintree':
+            self.scaling *= -1.0
 
     def initialize(self):
+        """
+        Initialize the layer weights.
+        """
         self.weight.data.uniform_(-0.01, 0.01)
         self.bias.data.fill_(0)
 
     def forward(self, batched_input):
         """
-        input: tensor of shape (B,N,H,W). The tensor gets converted to int16 internally.
+        Runs the differential maxtree filters on the inputs.
+        :param batched_input: tensor of shape (B,N,H,W).
+            The tensor gets multiplied by the scaling factor internally, and is casted to torch.int16 on the cpu.
+            The scaling factor allows to not loose information, prior to the quantization to int16. The output
+            is inversely scaled by the scaling factor, and casted to the input type and device.
         returns:
-            tensor of shape (B,N,H,W)
+            tensor of shape (B,N,H,W). The results of applying the differential maxtree filtering on each channel.
+            The output type and device match the input type and device.
         """
+        scaled_input = batched_input * self.scaling
         batched_out = []
-        for input in batched_input:
+        for input in scaled_input:
             filtered = ManyDifferentialMaxtreeFunction.apply(input, self.weight, self.bias)
             batched_out.append(filtered)
-        return torch.stack(batched_out, dim=0)
+        batched_out = torch.stack(batched_out, dim=0) / self.scaling
+        return batched_out
