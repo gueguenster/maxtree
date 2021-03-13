@@ -46,7 +46,7 @@ this CC histogram, as it is unique given an image, and it allows to generate bac
 ![equation](http://latex.codecogs.com/svg.latex?I(p)%20=%20%5Csum_%7Bp%5Cin%20c,%20%5C;%20(c,%20h)%20%5Cin%20C(I)%7D%7Bh%7D%20)
 
 The Maxtree generates the CC histogram by exploiting the nested nature of the CCs at different thresholds, and organizes 
-them in a tree structure as illustrated below (Credit [5]):
+them in a tree structure as illustrated below (Credit to [5]):
 
 ![maxtree](./maxtree_illustration.jpg)
 
