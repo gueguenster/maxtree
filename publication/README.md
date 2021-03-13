@@ -15,7 +15,7 @@ H x W to a value in the set of integers:
 ![equation](http://latex.codecogs.com/svg.latex?I:&space;\[0\cdots&space;H-1\]&space;\times&space;\[0&space;\cdots&space;W-1]&space;\mapsto&space;\mathbb{N})
 
 The set of all images adhering to the previous definition is called ![equation](http://latex.codecogs.com/svg.latex?\mathbb{I}).
-A pixel from the grid is simply named ![equation](http://latex.codecogs.com/svg.latex?p&space;\in&space;\mathbb{G}), and its
+ A pixel from the grid is simply named ![equation](http://latex.codecogs.com/svg.latex?p%20%5Cin%20%5Cmathbb%7BG%7D), and its
 image value is ![equation](http://latex.codecogs.com/svg.latex?I(p)&space;\in&space;\mathbb{N}&space;).
 
 A threshold is an operator acting on an image, which indicates if a pixel is above a value or not:
@@ -54,10 +54,33 @@ The Maxtree algorithm leverages a tree data structure where each pixel maintain 
 components they belong through a disjoint datasets data structure. Given the Maxtree representation, all
 the CCs a pixel belongs to can be retrieved by parsing the tree from leaf to its root. In other word, as you reconstruct
 the image at a given pixel, you do not have to explore all the connected components, but need uniquely to traverse a 
-single branch. 
+single branch. This tree based representation is further exploited to filter the input image. 
+
+The Maxtree algorithm can be applied to 1-D, 2-D and 3-D signals given that the underlying dense grid are equipped
+with a connectivity criterion. Therefore, the Maxtree decomposition is well illustrated on 1-d signal to highlight the
+nested nature of the CCs. Below the Maxtree decomposition is overlaid on a 1-D signal, where the signal support is the at
+the tree root, and the signal peaks are the tree leafs:
+
+![maxtree](./maxtree_1d.png)
+
+###Maxtree filtering
+There are different filtering strategies which can be applied to the Maxtree of an image. The most straighforward strategy
+which interests us here is the direct rule [2], which eliminates CCs from the tree. Then, the filtered output is obtained
+by reconstructing the image from the filtered tree. Let us define a criterion which indicates if a CC with its count 
+is retained:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%20s:%20C(I)&%20%5Cmapsto%20%5C%7B0,%201%5C%7D%20%5C%5C%20c,%20%5C;%20h&%5Cto%20%20s(c,h)%20%5Cend%7Balign*%7D%20)
+
+We will discuss later how this criterion can be built of shape attributes. The criterion uniquely defines a Maxtree filtering,
+and by extension a filtering of an image. A filtered image is reconstructed as:
+
+![equation](http://latex.codecogs.com/svg.latex?F(p)%20=%20%5Csum_%7B%5Cbegin%7Balign*%7Dp%20&%5Cin%20c%20%5C%5C%20s(c,h)&=1%20%5C%5C%20c,h%20&%5Cin%20C(I)%20%5Cend%7Balign*%7D%7D%20h)
+
+A direct filtering is illustrated on a 1-D signal below (credit [6]):
+
+![filtering](./direct_filter.png)
 
 ###Shape attributes
-###Maxtree filtering
 
 ##Differential Maxtree filtering
 ###Maxtree differential filtering
@@ -82,3 +105,5 @@ Processing, Mackinac Island, USA, 1997.
 techniques, IEEE Signal Processing Magazine, vol. 6, pp. 136–157, 2009.
 
 [5] Philippe Salembier and Luis Garrido, Connected Operators Based On Region-Tree Pruning, 2000
+
+[6] Michael H. F. Wilkinson, One-Hundred-and-One Uses of a Max-Tree, http://www.cs.rug.nl/~michael/mt-pres.pdf, 2004
