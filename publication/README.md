@@ -140,7 +140,40 @@ The parameter loss derivatives is obtained  with the following sum:
 
 ![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20=%20%5Csum_%7B(c,h)%20%5Cin%20C(I)%7D%7B%5Cfrac%7B%5Cpartial%20s_%5Ctheta%7D%7B%5Cpartial%20%5Ctheta%7D(c,h)%20h%20%5Cleft%20(%20%5Csum_%7Bp%20%5Cin%20c%7D%7B%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D(p)%7D%20%5Cright%20)%20%7D)
 
-###Torch based implementation
+Expressing the loss derivatives with respect to the input is harder and requires some approximation. We make the assumption
+that all the pixels in a CC vary their greyscale values in the same way. So the CCs themselves do not vary with varitions
+of the input itself:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20h%7D(p)%20=%20%5Cbegin%7Bcases%7D%20%20%20%20%20%200%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cnotin%20c%20%5C%5C%20%20%20%20%20%20%5Cfrac%7B%5Cpartial%20s_%5Ctheta%7D%7B%5Cpartial%20h%7D(c,h)h%20&plus;%20s_%7B%5Ctheta%7D(c,h)%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cin%20c%20%20%20%20%5Cend%7Bcases%7D%20%20%20%20)
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20h%7D(p)%20=%20%5Cbegin%7Bcases%7D0%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cnotin%20c%20%5C%5C%20%5Csum_%7Bq%20%5Cin%20c%7D%7B%5Cfrac%7B%5Cpartial%20L%20%7D%7B%5Cpartial%20O%7D%7D(q)%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20h%7D(q)%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cin%20c%5Cend%7Bcases%7D%20%20%20)
+
+All the pixels from a CC receive the same average derivative which is obtained as the weighted sum of the output derivatives
+falling in the CC. Then, the image derivative for a given pixel is obtained by summing all derivative of CCs covering that 
+pixel:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20I%7D(p)=%5Csum_%7B(c,h)%20%5Cin%20C(I),%5C:%20p%20%5Cin%20c%7D%7B%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20h%7D(p)%7D%20%20%20)
+
+This operation is implemented by computing a loss derivative for each CC, and using this derivative value as a score
+in a Maxtree filtering. The ouput of this filtering is thus the derivative of loss with respect to the input, which is 
+then backpropagated to parent layers.
+
+
+###Shape attributes implementation
+We propose an implementation based on the CC shape attributes. The parametric score function is a logit
+score on a linear combination of each CC shape attribute. The shape attribute function is:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7Da:%20P(%5Cmathbb%7BG%7D)%20&%5Cmapsto%20%5Cmathbb%7BR%7D%5Ek%20%5C%5C%20c%20&%5Cto%20a(c)%5Cend%7Balign%7D%20%20%20)
+
+The parametric score function is expressed from its weight and bias as:
+
+![equation](http://latex.codecogs.com/svg.latex?s_%7BW,b%7D(c,h)%20=%20%5Csigma(Wa(c)&plus;b)%20%20%20)
+
+where ![equation](http://latex.codecogs.com/svg.latex?W%20%20%20) is the weight vector, ![equation](http://latex.codecogs.com/svg.latex?b%20%20%20) is the bias 
+![equation](http://latex.codecogs.com/svg.latex?%5Csigma) and is the sigmoid function. It can be noted that the parameteric
+score function does not depend on the count h. This simplifies the derivative of the output to:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20h%7D(p)=%20%5Cbegin%7Bcases%7D0%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cnotin%20c%20%5C%5C%20%20%20%5Csigma(Wa(c)&plus;b)%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cin%20c%20%5Cend%7Bcases%7D)
 
 ##Illustrations
 
