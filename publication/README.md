@@ -1,10 +1,10 @@
-#Differential Maxtree
+# Differential Maxtree
 L. Gueguen, 2021
 
-##Introduction
+## Introduction
 
-##Maxtree decomposition and filtering
-###Maxtree decomposition
+## Maxtree decomposition and filtering
+### Maxtree decomposition
 Maxtree are image (or signal) representations created by structuring the connected components resulting from threshold 
 decomposition [1], [2]. They are also known as Component Trees [3]. They provide a multiscale description of extremas of
 images and signals and are, among other things, one of the classical ways to build connected operators [4]. Let's define
@@ -63,7 +63,7 @@ the tree root, and the signal peaks are the tree leafs:
 
 ![maxtree](./maxtree_1d.png)
 
-###Maxtree filtering
+### Maxtree filtering
 There are different filtering strategies which can be applied to the Maxtree of an image. The most straighforward strategy
 which interests us here is the direct rule [2], which eliminates CCs from the tree. Then, the filtered output is obtained
 by reconstructing the image from the filtered tree. Let us define a criterion which indicates if a CC with its count 
@@ -85,15 +85,15 @@ A direct filtering is illustrated on a 1-D signal below (credit [6]):
 
 ![filtering](./direct_filter.png)
 
-###Shape attributes
+### Shape attributes
 
 A 2-d CC is described by shape attributes. The shape attributes is real vector of k values.
 
-##Differential Maxtree filtering
+## Differential Maxtree filtering
 This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
 is extended to a differential filtering rule. Secondly, the backpropagation derivatives are expressed on the differential
 Maxtree based filtering. Finally, implementation details are given.
-###Maxtree differential filtering
+### Maxtree differential filtering
 A Maxtree direct filtering is given from a boolean function defined on CC's attributes. However such functions are not
 easily differentiable because they are not continuous. We propose to extend the definition of a criterion as being a parametric
 score function mapping the CC to a real valued interval, and being differentiable:
@@ -109,7 +109,7 @@ Like convolution filters which are parametrized by the convolution kernels, the 
 of image filters. Deeplearning has been employed to determine efficiently the best kernels of any convolution
 in convolution networks [7], and the same can be achieved for a parametric Maxtree based filter.
 
-###Backpropagation derivatives
+### Backpropagation derivatives
 Backpropagation is at the core of DeepLearning, and it optimizes the parameter of a function while passing the loss
 derivatives down in an architecture. A layer in an architecture is a parametric function which transforms the outputs
 of parents layers into outputs consumed by children layers. Let us denote a parametric layer by:
@@ -159,7 +159,7 @@ in a Maxtree filtering. The ouput of this filtering is thus the derivative of lo
 then backpropagated to parent layers.
 
 
-###Shape attributes based filtering
+### Shape attributes based filtering
 We propose an implementation based on the CC shape attributes. The parametric score function is a logit
 score on a linear combination of each CC shape attribute. The shape attribute function is:
 
@@ -177,11 +177,11 @@ score function does not depend on the count h. This simplifies the derivative of
 
 Furthermore, as CC variations are not considered in our derivative simplification, it can be noted that
 the attribute function does not require to be differentiable with the CC itself.
-##Illustrations
+## Illustrations
 
-##Conclusion
+## Conclusion
 
-##References
+## References
 [1] P. Salembier, A. Oliveras, and L. Garrido. Motion connected operators for image sequences, In VIII European Signal 
 Processing Conference, EUSIPCO'96, pages 1083-1086, Trieste, Italy, September 1996.
 
