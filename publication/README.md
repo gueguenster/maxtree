@@ -159,13 +159,13 @@ in a Maxtree filtering. The ouput of this filtering is thus the derivative of lo
 then backpropagated to parent layers.
 
 
-###Shape attributes implementation
+###Shape attributes based filtering
 We propose an implementation based on the CC shape attributes. The parametric score function is a logit
 score on a linear combination of each CC shape attribute. The shape attribute function is:
 
 ![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7Da:%20P(%5Cmathbb%7BG%7D)%20&%5Cmapsto%20%5Cmathbb%7BR%7D%5Ek%20%5C%5C%20c%20&%5Cto%20a(c)%5Cend%7Balign%7D%20%20%20)
 
-The parametric score function is expressed from its weight and bias as:
+The parametric score function is expressed from the shape attributes, its weight and its bias as:
 
 ![equation](http://latex.codecogs.com/svg.latex?s_%7BW,b%7D(c,h)%20=%20%5Csigma(Wa(c)&plus;b)%20%20%20)
 
@@ -175,6 +175,8 @@ score function does not depend on the count h. This simplifies the derivative of
 
 ![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20h%7D(p)=%20%5Cbegin%7Bcases%7D0%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cnotin%20c%20%5C%5C%20%20%20%5Csigma(Wa(c)&plus;b)%20&%20%5Ctext%7Bif%20%7D%20p%20%5Cin%20c%20%5Cend%7Bcases%7D)
 
+Furthermore, as CC variations are not considered in our derivative simplification, it can be noted that
+the attribute function does not require to be differentiable with the CC itself.
 ##Illustrations
 
 ##Conclusion
