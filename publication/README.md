@@ -76,15 +76,60 @@ and by extension a filtering of an image. A filtered image is reconstructed as:
 
 ![equation](http://latex.codecogs.com/svg.latex?F(p)%20=%20%5Csum_%7B%5Cbegin%7Balign*%7Dp%20&%5Cin%20c%20%5C%5C%20s(c,h)&=1%20%5C%5C%20c,h%20&%5Cin%20C(I)%20%5Cend%7Balign*%7D%7D%20h)
 
+Thus, a criterion along the Maxtree algorithm allows to define a filtering of any image. We denote this filtering operation
+as follows:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%20f_s:%20%5Cmathbb%7BI%7D%20&%20%5Cmapsto%20%5Cmathbb%7BI%7D%20%5C%5C%20I%20&%5Cto%20f_s(I)%20=%20F%20%5Cend%7Balign*%7D%20)
+
 A direct filtering is illustrated on a 1-D signal below (credit [6]):
 
 ![filtering](./direct_filter.png)
 
 ###Shape attributes
 
+A 2-d CC is described by shape attributes. The shape attributes is real vector of k values.
+
 ##Differential Maxtree filtering
+This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
+is extended to a differential filtering rule. Secondly, the backpropagation derivatives are expressed on the differential
+Maxtree based filtering. Finally, implementation details are given.
 ###Maxtree differential filtering
+A Maxtree direct filtering is given from a boolean function defined on CC's attributes. However such functions are not
+easily differentiable because they are not continuous. We propose to extend the definition of a criterion as being a parametric
+score function mapping the CC to a real valued interval, and being differentiable:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%20s_%5Ctheta:%20C(I)%20&%20%5Cmapsto%20%5B0%20%5Ccdots%201%5D%20%5C%5C%20c,h%20&%5Cto%20s_%5Ctheta(c,%20h)%20%5Cend%7Balign*%7D%20)
+
+Then, the filtered image can then be expressed by:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%20F_%5Ctheta(p)%20&=%20%5Csum_%7Bp%20%5Cin%20c,%20%5C:(c,h)%20%5Cin%20C(I)%7D%7B%20s_%5Ctheta(s,c)h%7D%20%5C%5C%20f_%5Ctheta(I)&=%20F_%5Ctheta%20%5Cend%7Balign*%7D)
+
+A parametric score function is more generic than a criterion and leads to a larger set of image filters which can be differentiated.
+Like convolution filters which are parametrized by the convolution kernels, the score function parameters lead to a variety
+of image filters. Deeplearning has been employed to determine efficiently the best kernels of any convolution
+in convolution networks [7], and the same can be achieved for a parametric Maxtree based filter.
+
 ###Backpropagation derivatives
+Backpropagation is at the core of DeepLearning, and it optimizes the parameter of a function while passing the loss
+derivatives down in an architecture. A layer in an architecture is a parametric function which transforms the outputs
+of parents layers into outputs consumed by children layers. Let us denote a parametric layer by:
+
+![equation](http://latex.codecogs.com/svg.latex?O%20=%20l_%7B%5Ctheta%7D(I))
+
+where the input is ![equation](http://latex.codecogs.com/svg.latex?I), the parameters are ![equation](http://latex.codecogs.com/svg.latex?\theta) 
+and the output is ![equation](http://latex.codecogs.com/svg.latex?O).
+
+In order to find the best parameters of a layer, the backpropagation algorithm [7] computes two losses from the loss derivates
+propagated from children layer. The loss derivative is ![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D). This
+loss which is given by children layer is used to compute the following derivatives: ![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D) and
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20I%7D). The first derivative is 
+used in gradient descent algorithm to optimize the layer parameters. The second derivative is propagated to parent layers.
+These derivatives are expressed from the output loss derivatives by applying the chain rule:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20%5Ctheta%7D%20%5C%5C%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20I%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20I%7D%5Cend%7Balign*%7D)
+
+We express below these two loss derivates for a differential Maxtree filter.
+
 ###Torch based implementation
 
 ##Illustrations
@@ -107,3 +152,5 @@ techniques, IEEE Signal Processing Magazine, vol. 6, pp. 136–157, 2009.
 [5] Philippe Salembier and Luis Garrido, Connected Operators Based On Region-Tree Pruning, 2000
 
 [6] Michael H. F. Wilkinson, One-Hundred-and-One Uses of a Max-Tree, http://www.cs.rug.nl/~michael/mt-pres.pdf, 2004
+
+[7]  LeCun, Yann; Bengio, Yoshua (1995). "Convolutional networks for images, speech, and time series". In Arbib, Michael A. (ed.). The handbook of brain theory and neural networks (Second ed.). The MIT press. pp. 276–278.
