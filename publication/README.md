@@ -128,7 +128,17 @@ These derivatives are expressed from the output loss derivatives by applying the
 
 ![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20%5Ctheta%7D%20%5C%5C%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20I%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20I%7D%5Cend%7Balign*%7D)
 
-We express below these two loss derivates for a differential Maxtree filter.
+We express below these two loss derivates for a differential Maxtree filter. We denote the parameteric Maxtree filter result:
+
+![equation](http://latex.codecogs.com/svg.latex?O_%7B%5Ctheta%7D(p)=%5Csum_%7B(c,h)%20%5Cin%20C(I),%20%5C:p%20%5Cin%20c%7D%7Bs_%7B%5Ctheta%7D(c,h)h%7D)
+
+The parameter loss derivatives is obtained  with the following sum:
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20O_%7B%5Ctheta%7D%7D%7B%5Cpartial%20%5Ctheta%7D(p)=%5Csum_%7B(c,h)%20%5Cin%20C(I),%20%5C:p%20%5Cin%20c%7D%7B%5Cfrac%7B%5Cpartial%20s_%7B%5Ctheta%7D%7D%7B%5Cpartial%20%5Ctheta%7D(c,h)h%7D)
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20=%20%5Csum_%7Bp%7D%7B%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D(p)%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20%5Ctheta%7D(p)%7D)
+
+![equation](http://latex.codecogs.com/svg.latex?%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20=%20%5Csum_%7B(c,h)%20%5Cin%20C(I)%7D%7B%5Cfrac%7B%5Cpartial%20s_%5Ctheta%7D%7B%5Cpartial%20%5Ctheta%7D(c,h)%20h%20%5Cleft%20(%20%5Csum_%7Bp%20%5Cin%20c%7D%7B%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D(p)%7D%20%5Cright%20)%20%7D)
 
 ###Torch based implementation
 
