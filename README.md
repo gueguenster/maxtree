@@ -1,5 +1,7 @@
 # maxtree
-implements the maxtree algorithm with python binding, using numpy or torch.
+Implements the Maxtree algorithm with python binding, using numpy or torch. 
+It extends the original algorithm to a [Differentiable Maxtree](publication/README.md) layer which can be integrated
+in a deep learning architecture.
 
 ## Installation
 ### pip
@@ -16,7 +18,9 @@ pip install -e .
 
 ## Usage example
 ### Differential maxtree - pytorch
-see [example/differential.ipynb](example/differential.ipynb)
+Get theoritical description at: [Differentiable Maxtree](publication/README.md)
+
+See examples at: [example/differential.ipynb](example/differential.ipynb)
 ```python
 import torch
 from maxtree.maxtree_torch import DifferentialMaxtree

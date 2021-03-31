@@ -209,14 +209,15 @@ Furthermore, as CC variations are not considered in our derivative simplificatio
 the attribute function does not require to be differentiable with the CC itself.
 
 ### Implementation details
-The Differential Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The differential
+The Differential Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The 
 layer leverages an underlying c++ implementation running uniquely on CPU. The implementation requires the image to be quantized. It results
 that the proposed Differential Maxtree layer internally scales and quantizes the input to int16. The outputs are provided as floating point
 arrays and are unscaled before being returned. Therefore, one must ensure that the inputs to the Differential Maxtree layer 
-have the right dynamics. 
+have the right ranges to not loose information. 
 
 The Maxtree filtering complexity depends on one hand on the number of pixels, on the other hand
-on the number of CCs in the input. Thus, the layer might have variable computational complexities depending on the input.
+on the number of CCs in the input. Thus, the layer might have variable computational complexities depending on the input
+content.
 
 
 ## Illustrations
