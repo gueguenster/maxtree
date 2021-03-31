@@ -103,11 +103,11 @@ attributes that we compute for each CC:
 
 Name | Scale invariant | Rotation invariant | Translation invariant
 --- | :---: | :---: | :---: 
-min(x) | &check; | &cross; | &cross; 
+min(x) | &cross; | &cross; | &cross; 
 max(x) | &cross; | &cross; | &cross; 
 min(y) | &cross; | &cross; | &cross; 
 max(y) | &cross; | &cross; | &cross; 
-area | &cross; | &check; | &check; 
+log(area) | &cross; | &check; | &check; 
 PCA large variance | &cross; | &check; | &check;
 PCA small variance | &cross; | &check; | &check;
 sign(Hu_x) * log(abs(Hu_x) + eps), x in 1...7 | &check; | &check; | &check;
