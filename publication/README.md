@@ -87,9 +87,10 @@ A direct filtering is illustrated on a 1-D signal below (credit [6]):
 
 ### Shape attributes
 
-A 2-d CC is described by its shape attributes. The shape attributes is vector of k real values. As presented in [8], the shape attributes
+A 2-d CC can be described by its shape attributes. The shape attributes is vector of k real values. As presented in [8], the shape attributes
 can be efficiently computed with the MaxTree data structure from the 2d normalized moments, and some accumulation statistics.
-Given these statistics translation, rotation and scale invariant attributes can be built. We provide in the table below the
+Given these statistics translation, rotation and scale invariant attributes can be built. We generate the 7 [Hu moments](https://learnopencv.com/shape-matching-using-hu-moments-c-python/) 
+for example. We provide in the table below the
 attributes that we compute for each CC:
 
 Name | Scale invariant | Rotation invariant | Translation invariant
@@ -98,9 +99,18 @@ min(x) | &check; | &cross; | &cross;
 max(x) | &cross; | &cross; | &cross; 
 min(y) | &cross; | &cross; | &cross; 
 max(y) | &cross; | &cross; | &cross; 
-area | &cross | &check; | &check; 
+area | &cross; | &check; | &check; 
 PCA large variance | &cross; | &check; | &check;
 PCA small variance | &cross; | &check; | &check;
+sign(Hu_x) * log(abs(Hu_x) + eps), x in 1...7 | &check; | &check; | &check;
+L-shape | &check; | &check; | &check;
+cos(angle) | &check; | &cross; | &check;
+sin(angle) | &check; | &cross; | &check;
+
+These attributes are used to build a criterion function, resulting into a MaxTree filter. Given the high dimension 
+of the CC shape attributes, an infinity of criterion function can be defined. Determining such a function can be cubersome,
+and require an optimization approach. Therefore, we a parametric approach below, to derive such criterion
+and associated filters.
 
 ## Differential Maxtree filtering
 This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
