@@ -220,8 +220,10 @@ on the number of CCs in the input. Thus, the layer might have variable computati
 
 
 ## Illustrations
+WIP
 
 ## Conclusion
+WIP
 
 ## References
 [1] P. Salembier, A. Oliveras, and L. Garrido. Motion connected operators for image sequences, In VIII European Signal 
