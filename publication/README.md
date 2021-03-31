@@ -87,7 +87,20 @@ A direct filtering is illustrated on a 1-D signal below (credit [6]):
 
 ### Shape attributes
 
-A 2-d CC is described by shape attributes. The shape attributes is real vector of k values.
+A 2-d CC is described by its shape attributes. The shape attributes is vector of k real values. As presented in [8], the shape attributes
+can be efficiently computed with the MaxTree data structure from the 2d normalized moments, and some accumulation statistics.
+Given these statistics translation, rotation and scale invariant attributes can be built. We provide in the table below the
+attributes that we compute for each CC:
+
+Name | Scale invariant | Rotation invariant | Translation invariant
+--- | :---: | :---: | :---: 
+min(x) | &check; | &cross; | &cross; 
+max(x) | &cross; | &cross; | &cross; 
+min(y) | &cross; | &cross; | &cross; 
+max(y) | &cross; | &cross; | &cross; 
+area | &cross | &check; | &check; 
+PCA large variance | &cross; | &check; | &check;
+PCA small variance | &cross; | &check; | &check;
 
 ## Differential Maxtree filtering
 This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
@@ -198,4 +211,6 @@ techniques, IEEE Signal Processing Magazine, vol. 6, pp. 136–157, 2009.
 
 [6] Michael H. F. Wilkinson, One-Hundred-and-One Uses of a Max-Tree, http://www.cs.rug.nl/~michael/mt-pres.pdf, 2004
 
-[7]  LeCun, Yann; Bengio, Yoshua (1995). "Convolutional networks for images, speech, and time series". In Arbib, Michael A. (ed.). The handbook of brain theory and neural networks (Second ed.). The MIT press. pp. 276–278.
+[7] LeCun, Yann; Bengio, Yoshua (1995). "Convolutional networks for images, speech, and time series". In Arbib, Michael A. (ed.). The handbook of brain theory and neural networks (Second ed.). The MIT press. pp. 276–278.
+
+[8] Lionel Gueguen, Classifying compound structures in satellite images: A compressed representation for fast queries, IEEE Transactions on Geoscience and Remote Sensing, 2014

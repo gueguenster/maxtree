@@ -45,7 +45,7 @@ def _log_scaling(feats):
     cosangle = torch.cos(feats[:, 5:6])
     sinangle = torch.sin(feats[:, 5:6])
     feats[:, 4] = torch.log(feats[:, 4])
-    feats[:, 6:] = torch.log(torch.abs(feats[:, 6:]) + epsilon) * torch.sign(feats[:, 6:])
+    feats[:, 6:] = torch.log(torch.abs(feats[:, 6:]) + 1.0) * torch.sign(feats[:, 6:])
     feats = torch.cat((feats[:, :5], feats[:, 6:], lshape, cosangle, sinangle), dim=1)
     return feats
 
