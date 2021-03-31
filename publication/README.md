@@ -2,6 +2,14 @@
 L. Gueguen, 2021
 
 ## Introduction
+Maxtree have been largely used over the past 20 years to filter images based on its morphological properties. However,
+with the advent of deep learning, these morphological filtering techniques have been left aside. We propose in this publication a
+Differential Maxtree layer which is a parametric morphological filter based on the Maxtree decomposition. Its parameters
+can be optimized through gradient descent and backpropagation [7], and the layer can be inlined in modern deep learning network.
+
+We first recall the properties of the Maxtree decomposition and how morphological filters can be defined from it. Then, we
+propose a parametrization of Maxtree based filters, leveraging shape attributes. Finally, we derive the backpropagation
+equations enabling to optimize the filter parameters and to backpropagate the loss errors.
 
 ## Maxtree decomposition and filtering
 ### Maxtree decomposition
@@ -109,8 +117,7 @@ sin(angle) | &check; | &cross; | &check;
 
 These attributes are used to build a criterion function, resulting into a MaxTree filter. Given the high dimension 
 of the CC shape attributes, an infinity of criterion function can be defined. Determining such a function can be cubersome,
-and require an optimization approach. Therefore, we a parametric approach below, to derive such criterion
-and associated filters.
+and require an optimization approach. 
 
 ## Differential Maxtree filtering
 This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
@@ -200,6 +207,18 @@ score function does not depend on the count h. This simplifies the derivative of
 
 Furthermore, as CC variations are not considered in our derivative simplification, it can be noted that
 the attribute function does not require to be differentiable with the CC itself.
+
+### Implementation details
+The Differential Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The differential
+layer leverages an underlying c++ implementation running uniquely on CPU. The implementation requires the image to be quantized. It results
+that the proposed Differential Maxtree layer internally scales and quantizes the input to int16. The outputs are provided as floating point
+arrays and are unscaled before being returned. Therefore, one must ensure that the inputs to the Differential Maxtree layer 
+have the right dynamics. 
+
+The Maxtree filtering complexity depends on one hand on the number of pixels, on the other hand
+on the number of CCs in the input. Thus, the layer might have variable computational complexities depending on the input.
+
+
 ## Illustrations
 
 ## Conclusion
