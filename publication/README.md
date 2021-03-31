@@ -2,6 +2,14 @@
 L. Gueguen, 2021
 
 ## Introduction
+Maxtree have been largely used over the past 20 years to filter images based on its morphological properties. However,
+with the advent of deep learning, these morphological filtering techniques have been left aside. We propose in this publication a
+Differential Maxtree layer which is a parametric morphological filter based on the Maxtree decomposition. Its parameters
+can be optimized through gradient descent and backpropagation [7], and the layer can be inlined in modern deep learning network.
+
+We first recall the properties of the Maxtree decomposition and how morphological filters can be defined from it. Then, we
+propose a parametrization of Maxtree based filters, leveraging shape attributes. Finally, we derive the backpropagation
+equations enabling to optimize the filter parameters and to backpropagate the loss errors.
 
 ## Maxtree decomposition and filtering
 ### Maxtree decomposition
@@ -87,7 +95,29 @@ A direct filtering is illustrated on a 1-D signal below (credit [6]):
 
 ### Shape attributes
 
-A 2-d CC is described by shape attributes. The shape attributes is real vector of k values.
+A 2-d CC can be described by its shape attributes. The shape attributes is vector of k real values. As presented in [8], the shape attributes
+can be efficiently computed with the MaxTree data structure from the 2d normalized moments, and some accumulation statistics.
+Given these statistics translation, rotation and scale invariant attributes can be built. We generate the 7 [Hu moments](https://learnopencv.com/shape-matching-using-hu-moments-c-python/) 
+for example. We provide in the table below the
+attributes that we compute for each CC:
+
+Name | Scale invariant | Rotation invariant | Translation invariant
+--- | :---: | :---: | :---: 
+min(x) | &check; | &cross; | &cross; 
+max(x) | &cross; | &cross; | &cross; 
+min(y) | &cross; | &cross; | &cross; 
+max(y) | &cross; | &cross; | &cross; 
+area | &cross; | &check; | &check; 
+PCA large variance | &cross; | &check; | &check;
+PCA small variance | &cross; | &check; | &check;
+sign(Hu_x) * log(abs(Hu_x) + eps), x in 1...7 | &check; | &check; | &check;
+L-shape | &check; | &check; | &check;
+cos(angle) | &check; | &cross; | &check;
+sin(angle) | &check; | &cross; | &check;
+
+These attributes are used to build a criterion function, resulting into a MaxTree filter. Given the high dimension 
+of the CC shape attributes, an infinity of criterion function can be defined. Determining such a function can be cubersome,
+and require an optimization approach. 
 
 ## Differential Maxtree filtering
 This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
@@ -177,9 +207,24 @@ score function does not depend on the count h. This simplifies the derivative of
 
 Furthermore, as CC variations are not considered in our derivative simplification, it can be noted that
 the attribute function does not require to be differentiable with the CC itself.
+
+### Implementation details
+The Differential Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The 
+layer leverages an underlying c++ implementation running uniquely on CPU. The implementation requires the image to be quantized. It results
+that the proposed Differential Maxtree layer internally scales and quantizes the input to int16. The outputs are provided as floating point
+arrays and are unscaled before being returned. Therefore, one must ensure that the inputs to the Differential Maxtree layer 
+have the right ranges to not loose information. 
+
+The Maxtree filtering complexity depends on one hand on the number of pixels, on the other hand
+on the number of CCs in the input. Thus, the layer might have variable computational complexities depending on the input
+content.
+
+
 ## Illustrations
+WIP
 
 ## Conclusion
+WIP
 
 ## References
 [1] P. Salembier, A. Oliveras, and L. Garrido. Motion connected operators for image sequences, In VIII European Signal 
@@ -198,4 +243,6 @@ techniques, IEEE Signal Processing Magazine, vol. 6, pp. 136–157, 2009.
 
 [6] Michael H. F. Wilkinson, One-Hundred-and-One Uses of a Max-Tree, http://www.cs.rug.nl/~michael/mt-pres.pdf, 2004
 
-[7]  LeCun, Yann; Bengio, Yoshua (1995). "Convolutional networks for images, speech, and time series". In Arbib, Michael A. (ed.). The handbook of brain theory and neural networks (Second ed.). The MIT press. pp. 276–278.
+[7] LeCun, Yann; Bengio, Yoshua (1995). "Convolutional networks for images, speech, and time series". In Arbib, Michael A. (ed.). The handbook of brain theory and neural networks (Second ed.). The MIT press. pp. 276–278.
+
+[8] Lionel Gueguen, Classifying compound structures in satellite images: A compressed representation for fast queries, IEEE Transactions on Geoscience and Remote Sensing, 2014
