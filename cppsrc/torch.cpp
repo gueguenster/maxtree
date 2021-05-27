@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <torch/extension.h>
 #include <vector>
 #include <map>
-#include <omp.h>
 
 #include "maxtree.h"
 
