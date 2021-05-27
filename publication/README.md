@@ -1,10 +1,10 @@
-# Differential Maxtree
+# Differentiable Maxtree
 L. Gueguen, 2021
 
 ## Introduction
 Maxtree have been largely used over the past 20 years to filter images based on its morphological properties. However,
 with the advent of deep learning, these morphological filtering techniques have been left aside. We propose in this publication a
-Differential Maxtree layer which is a parametric morphological filter based on the Maxtree decomposition. Its parameters
+Differentiable Maxtree layer which is a parametric morphological filter based on the Maxtree decomposition. Its parameters
 can be optimized through gradient descent and backpropagation [7], and the layer can be inlined in modern deep learning network.
 
 We first recall the properties of the Maxtree decomposition and how morphological filters can be defined from it. Then, we
@@ -119,11 +119,11 @@ These attributes are used to build a criterion function, resulting into a MaxTre
 of the CC shape attributes, an infinity of criterion function can be defined. Determining such a function can be cubersome,
 and require an optimization approach. 
 
-## Differential Maxtree filtering
-This section covers the expression of a differential Maxtree based filtering. First, the direct filtering rule
-is extended to a differential filtering rule. Secondly, the backpropagation derivatives are expressed on the differential
+## Differentiable Maxtree filtering
+This section covers the expression of a differentiable Maxtree based filtering. First, the direct filtering rule
+is extended to a differentiable filtering rule. Secondly, the backpropagation derivatives are expressed on the differentiable
 Maxtree based filtering. Finally, implementation details are given.
-### Maxtree differential filtering
+### Maxtree differentiable filtering
 A Maxtree direct filtering is given from a boolean function defined on CC's attributes. However such functions are not
 easily differentiable because they are not continuous. We propose to extend the definition of a criterion as being a parametric
 score function mapping the CC to a real valued interval, and being differentiable:
@@ -158,7 +158,7 @@ These derivatives are expressed from the output loss derivatives by applying the
 
 ![equation](http://latex.codecogs.com/svg.latex?%5Cbegin%7Balign*%7D%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20%5Ctheta%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20%5Ctheta%7D%20%5C%5C%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20I%7D%20&=%20%5Cfrac%7B%5Cpartial%20L%7D%7B%5Cpartial%20O%7D%20%5Cfrac%7B%5Cpartial%20O%7D%7B%5Cpartial%20I%7D%5Cend%7Balign*%7D)
 
-We express below these two loss derivates for a differential Maxtree filter. We denote the parameteric Maxtree filter result:
+We express below these two loss derivates for a differentiable Maxtree filter. We denote the parameteric Maxtree filter result:
 
 ![equation](http://latex.codecogs.com/svg.latex?O_%7B%5Ctheta%7D(p)=%5Csum_%7B(c,h)%20%5Cin%20C(I),%20%5C:p%20%5Cin%20c%7D%7Bs_%7B%5Ctheta%7D(c,h)h%7D)
 
@@ -209,10 +209,10 @@ Furthermore, as CC variations are not considered in our derivative simplificatio
 the attribute function does not require to be differentiable with the CC itself.
 
 ### Implementation details
-The Differential Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The 
+The Differentiable Maxtree is implemented within the [Pytorch](https://pytorch.org/) deep learning framework. The 
 layer leverages an underlying c++ implementation running uniquely on CPU. The implementation requires the image to be quantized. It results
-that the proposed Differential Maxtree layer internally scales and quantizes the input to int16. The outputs are provided as floating point
-arrays and are unscaled before being returned. Therefore, one must ensure that the inputs to the Differential Maxtree layer 
+that the proposed Differentiable Maxtree layer internally scales and quantizes the input to int16. The outputs are provided as floating point
+arrays and are unscaled before being returned. Therefore, one must ensure that the inputs to the Differentiable Maxtree layer 
 have the right ranges to not loose information. 
 
 The Maxtree filtering complexity depends on one hand on the number of pixels, on the other hand
